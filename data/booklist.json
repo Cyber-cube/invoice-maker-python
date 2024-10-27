@@ -1,0 +1,16 @@
+{
+  "test_pub": {
+    "test_book": {
+      "price": 678.0,
+      "code": "001",
+      "quantity": 140
+    }
+  },
+  "test": {
+    "test_book_r": {
+      "price": 739.0,
+      "code": "007",
+      "quantity": 20
+    }
+  }
+}

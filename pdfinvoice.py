@@ -1,17 +1,18 @@
 from fpdf import FPDF
 
 class PDFInvoice(FPDF):
-    def __init__(self, org_name):
+    def __init__(self, org_name, pdf_type):
         super().__init__()
 
         self.org_name = org_name
+        self.pdf_type = pdf_type
 
         self.save_x = 0
         self.save_y = 0
 
     def header(self) -> None:
         self.set_font("Times", "B", 12)
-        self.cell(200, 10, "PURCHASE RETURN", align="C" )
+        self.cell(200, 10, f"{self.pdf_type}", align="C" )
         self.ln()
         self.set_font("Times", "B", 23)
         self.cell(200, 10, self.org_name, align="C")
