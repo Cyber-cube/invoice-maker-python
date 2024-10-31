@@ -1,6 +1,6 @@
 import tkinter as tk
-from numpy import exp
 import pandas as pd
+import os.path
 import json
 from pdfinvoice import PDFInvoice
 from autocomplete import AutoComplete
@@ -217,13 +217,47 @@ def create_pdf():
 
     df["Amount"] = (df["Qty"] * df["Price"]) - ((df["Disc"] * (df["Qty"] * df["Price"])) / 100)
 
+    if os.path.exists(f"data/school-sales-info/{to_details_var["name"].replace(" ", "-").lower()}.json"):
+        with open(f"data/school-sales-info/{to_details_var["name"].replace(" ", "-").lower()}.json") as f:
+            school_sales_info = json.load(f)
+        school_sales_info["debit"] += df["Amount"].sum()
+        school_sales_info[memo_no] = {
+            "particulars": "Sales",
+            "vch_type": pdf_type,
+            "type": "debit",
+            "amount": df["Amount"].sum()
+        }
+        with open(f"school-sales-info/{to_details_var["name"].replace(" ", "-").lower()}.json", "w") as f:
+            json.dump(school_sales_info, f, indent=2)
+    else:
+        open(f"data/school-sales-info/{to_details_var["name"].replace(" ", "-").lower()}.json", "x").close()
+
+        with open(f"data/school-sales-info/{to_details_var["name"].replace(" ", "-").lower()}.json", "w") as f:
+            json.dump({}, f, indent=2)
+
+        with open(f"data/school-sales-info/{to_details_var["name"].replace(" ", "-").lower()}.json") as f:
+            school_sales_info = json.load(f)
+
+        school_sales_info["from"] = {i: from_details_var[i] for i in from_details_var}
+        school_sales_info["school_info"] = {i: to_details_var[i] for i in to_details_var}
+        school_sales_info["credit"] = 00.0
+        school_sales_info["debit"] = df["Amount"].sum()
+        school_sales_info[memo_no] = {
+            "particulars": "Sales",
+            "vch_type": pdf_type,
+            "type": "debit",
+            "amount": df["Amount"].sum()
+        }
+        with open(f"data/school-sales-info/{to_details_var["name"].replace(" ", "-").lower()}.json", "w") as f:
+            json.dump(school_sales_info, f, indent=2)
+
     chunk_size = 32
     for i in range(0, len(df), chunk_size):
         pdf.add_page()
         pdf.from_details(from_details_var)
         pdf.to_details(to_details_var, delivery_info_var)
         pdf.product_table(df.iloc[i:i + chunk_size])
-        pdf.output(configuration["filename"])
+        pdf.output(f"pdfs/{configuration["filename"]}")
         for j in booklist:
             booklist[j] = []
         sl_counter = 1
