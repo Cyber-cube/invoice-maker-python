@@ -1,3 +1,4 @@
+from operator import index
 import tkinter as tk
 import pandas as pd
 import os.path
@@ -18,6 +19,10 @@ with open("data/global-settings.json") as f:
 pdf_types = ["PURCHASE", "PURCHASE RETURN", "INVOICE"]
 pdf_types_var = tk.IntVar()
 pdf_type = ""
+
+payment_types = ["Receipt", "Credit Note"]
+payment_types_var = tk.IntVar()
+payment_type = ""
 
 org_name = "KUMAR PUSTAK BHANDAR"
 
@@ -60,13 +65,19 @@ configuration = {
     "filename": "invoice.pdf"
 }
 
-
 pub_keys = list(booklist_json.keys())
 book_name_keys = {i: list(booklist_json[i].keys()) for i in booklist_json}
 
 def change_pdf_type():
     global pdf_type
     pdf_type = pdf_types[pdf_types_var.get()]
+
+def change_payment_type():
+    global payment_type
+    payment_type = payment_types[payment_types_var.get()]
+    if payment_types_var.get() == 0:
+        bank_name_label.grid(row=4, column=0)
+        bank_name.grid(row=4, column=1)
 
 def publisher_focusout(event, which_pub):
     global catalog_book_autocomplete
@@ -205,6 +216,32 @@ def add_to_catalog():
     catalog_quantity.delete(0, tk.END)
     with open("data/booklist.json", "w") as f:
         json.dump(booklist_json, f, indent=2)
+
+def add_payment():
+    global memo_no
+    with open(f"data/school-sales-info/{school_name.get().replace(" ", "-").lower()}") as f:
+        school_sales_info = json.load(f)
+    school_sales_info[memo_no] = {
+        "payment_date": payment_date.get(),
+        "particulars": bank_name.get() if payment_types_var.get() == 0 else "Sales",
+        "vch_type": payment_type,
+        "amount": float(payment_amount.get())
+    }
+    school_sales_info["debit"] -= float(payment_amount.get())
+    if school_sales_info["debit"] < 0:
+        school_sales_info["credit"] += abs(school_sales_info["debit"])
+        school_sales_info["debit"] = 0.0
+    memo_no += 1
+    payment_memo_no_label.config(text=f"{memo_no:03}")
+    memo_label.config(text=f"{memo_no:03}")
+    with open(f"data/school-sales-info/{school_name.get().replace(" ", "-").lower()}", "w") as f:
+        json.dump(school_sales_info, f, indent=2)
+    school_name.delete(0, tk.END)
+    payment_date.delete(0, tk.END)
+    bank_name.delete(0, tk.END)
+    bank_name.place_forget()
+    payment_amount.delete(0, tk.END)
+
 
 def create_pdf():
     global booklist
@@ -525,5 +562,43 @@ catalog_quantity.grid(row=4, column=1)
 # Add to catalog
 add_to_catalog_button = tk.Button(catalog, text="Add to catalog", command=add_to_catalog)
 add_to_catalog_button.grid(row=5, column=1)
+
+# Add Payment
+payment = tk.Frame(root, width=250, height=200, bd=5, relief="solid")
+payment.grid(row=2, column=0, padx= 10, pady=10, sticky="nsew")
+
+# School Name
+school_name_label = tk.Label(payment, text="School Name:")
+school_name_label.grid(row=0, column=0)
+school_name = tk.Entry(payment)
+school_name.grid(row=0, column=1)
+
+# Payment Date
+payment_date_label = tk.Label(payment, text="Payment Date:")
+payment_date_label.grid(row=1, column=0)
+payment_date = tk.Entry(payment)
+payment_date.grid(row=1, column=1)
+
+# Payment type
+for i in range(len(payment_types)):
+    payment_types_radiobutton = tk.Radiobutton(payment, text=payment_types[i], variable=payment_types_var, value=i, command=change_payment_type)
+    payment_types_radiobutton.grid(row=2+i, column=0)
+
+# Bank Name (If Receipt)
+bank_name_label = tk.Label(payment, text="Bank Name:")
+bank_name = tk.Entry(payment)
+
+# amount
+payment_amount_label = tk.Label(payment, text="Payment Amount:")
+payment_amount_label.grid(row=6, column=0)
+payment_amount = tk.Entry(payment)
+payment_amount.grid(row=6, column=1)
+
+# Memo No.
+payment_memo_no_label = tk.Label(payment, text=f"{memo_no:03}")
+payment_memo_no_label.grid(row=7, column=0)
+
+# Add Payment button
+add_payment_button = tk.Button(text="Add Payment", command=add_payment)
 
 tk.mainloop()
