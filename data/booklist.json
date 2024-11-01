@@ -3,14 +3,14 @@
     "test_book": {
       "price": 678.0,
       "code": "001",
-      "quantity": 400
+      "quantity": 380
     }
   },
   "test": {
     "test_book_r": {
       "price": 739.0,
       "code": "007",
-      "quantity": 420
+      "quantity": 400
     }
   }
 }

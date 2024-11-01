@@ -20,7 +20,7 @@ pdf_types = ["PURCHASE", "PURCHASE RETURN", "INVOICE"]
 pdf_types_var = tk.IntVar()
 pdf_type = ""
 
-payment_types = ["Receipt", "Credit Note"]
+payment_types = ["Credit Note", "Receipt"]
 payment_types_var = tk.IntVar()
 payment_type = ""
 
@@ -75,9 +75,12 @@ def change_pdf_type():
 def change_payment_type():
     global payment_type
     payment_type = payment_types[payment_types_var.get()]
-    if payment_types_var.get() == 0:
+    if payment_types_var.get() == 1:
         bank_name_label.grid(row=4, column=0)
         bank_name.grid(row=4, column=1)
+    elif payment_types_var.get() == 0:
+        bank_name_label.place_forget()
+        bank_name.place_forget()
 
 def publisher_focusout(event, which_pub):
     global catalog_book_autocomplete
@@ -219,11 +222,11 @@ def add_to_catalog():
 
 def add_payment():
     global memo_no
-    with open(f"data/school-sales-info/{school_name.get().replace(" ", "-").lower()}") as f:
+    with open(f"data/school-sales-info/{school_name.get().replace(" ", "-").lower()}.json") as f:
         school_sales_info = json.load(f)
     school_sales_info[memo_no] = {
         "payment_date": payment_date.get(),
-        "particulars": bank_name.get() if payment_types_var.get() == 0 else "Sales",
+        "particulars": bank_name.get() if payment_types_var.get() == 1 else "Sales",
         "vch_type": payment_type,
         "amount": float(payment_amount.get())
     }
@@ -232,16 +235,16 @@ def add_payment():
         school_sales_info["credit"] += abs(school_sales_info["debit"])
         school_sales_info["debit"] = 0.0
     memo_no += 1
-    payment_memo_no_label.config(text=f"{memo_no:03}")
-    memo_label.config(text=f"{memo_no:03}")
-    with open(f"data/school-sales-info/{school_name.get().replace(" ", "-").lower()}", "w") as f:
+    payment_memo_no_label.config(text=f"Memo#: {memo_no:03}")
+    memo_label.config(text=f"Memo#: {memo_no:03}")
+    with open(f"data/school-sales-info/{school_name.get().replace(" ", "-").lower()}.json", "w") as f:
         json.dump(school_sales_info, f, indent=2)
     school_name.delete(0, tk.END)
     payment_date.delete(0, tk.END)
     bank_name.delete(0, tk.END)
     bank_name.place_forget()
+    bank_name_label.place_forget()
     payment_amount.delete(0, tk.END)
-
 
 def create_pdf():
     global booklist
@@ -304,7 +307,7 @@ def create_pdf():
 
         current_sl_label.config(text=f"Current Sl No.: {sl_counter}")
         memo_label.config(text=f"Memo#: {memo_no:03}")
-
+        payment_memo_no_label.config(text=f"Memo#: {memo_no:03}")
         from_status_label.config(text="")
         to_status_label.config(text="")
         delivery_info_status_label.config(text="")
@@ -595,10 +598,11 @@ payment_amount = tk.Entry(payment)
 payment_amount.grid(row=6, column=1)
 
 # Memo No.
-payment_memo_no_label = tk.Label(payment, text=f"{memo_no:03}")
+payment_memo_no_label = tk.Label(payment, text=f"Memo#: {memo_no:03}")
 payment_memo_no_label.grid(row=7, column=0)
 
 # Add Payment button
-add_payment_button = tk.Button(text="Add Payment", command=add_payment)
+add_payment_button = tk.Button(payment, text="Add Payment", command=add_payment)
+add_payment_button.grid(row=7, column=1)
 
 tk.mainloop()
