@@ -95,4 +95,3 @@ class PDFInvoice(FPDF):
         self.cell(20, 5, f"For {self.org_name}", align="C")
         self.set_xy(-20, -5)
         self.cell(20, 5, "Auth. Signatory", align="C")
-        print("Hi from test")
