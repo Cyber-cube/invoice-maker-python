@@ -88,3 +88,11 @@ class PDFInvoice(FPDF):
         self.cell(15, 5, "", border=1, align="R")
         self.cell(15, 5, "", border=1, align="R")
         self.cell(25, 5, str(total_amount), border=1, align="R")
+    
+    def footer(self):
+        self.set_font("Times", "B", 8)
+        self.set_xy(-20, -15)
+        self.cell(20, 5, f"For {self.org_name}", align="C")
+        self.set_xy(-20, -5)
+        self.cell(20, 5, "Auth. Signatory", align="C")
+        print("Hi from test")

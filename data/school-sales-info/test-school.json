@@ -13,7 +13,7 @@
     "mobile_no": "63826482638"
   },
   "credit": 0.0,
-  "debit": 8340.0,
+  "debit": 36680.0,
   "11": {
     "particulars": "Sales",
     "vch_type": "",
@@ -25,5 +25,11 @@
     "particulars": "ICICI Bank Ltd",
     "vch_type": "Receipt",
     "amount": 20000.0
+  },
+  "12": {
+    "particulars": "Sales",
+    "vch_type": "",
+    "type": "debit",
+    "amount": 28340.0
   }
 }
