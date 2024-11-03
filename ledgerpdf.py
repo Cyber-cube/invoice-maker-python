@@ -25,6 +25,18 @@ class LedgerPDF(FPDF):
         self.set_xy(self.save_x, self.save_y + 15)
         self.cell(200, 5, f"Ph No.: +91 {self.from_var["mobile_no"]}", align="C")
 
+    def school(self):
+        self.set_font("Times", "B", 12)
+        self.save_x = self.get_x()
+        self.save_y = self.get_y()
+        self.cell(200, 5, f"{self.from_var["name"]}")
+
+        self.set_xy(self.save_x, self.save_y + 5 )
+        self.set_font("Times", "", 10)
+        self.cell(200, 5, "Ledger Account")
+        
+
+
 
 if __name__ == "__main__":
     from_data = {
