@@ -230,10 +230,10 @@ def add_payment():
         "vch_type": payment_type,
         "amount": float(payment_amount.get())
     }
-    school_sales_info["debit"] -= float(payment_amount.get())
-    if school_sales_info["debit"] < 0:
-        school_sales_info["credit"] += abs(school_sales_info["debit"])
-        school_sales_info["debit"] = 0.0
+    school_sales_info["info"]["debit"] -= float(payment_amount.get())
+    if school_sales_info["info"]["debit"] < 0:
+        school_sales_info["info"]["credit"] += abs(school_sales_info["info"]["debit"])
+        school_sales_info["info"]["debit"] = 0.0
     memo_no += 1
     payment_memo_no_label.config(text=f"Memo#: {memo_no:03}")
     memo_label.config(text=f"Memo#: {memo_no:03}")
@@ -260,7 +260,7 @@ def create_pdf():
     if os.path.exists(f"data/school-sales-info/{to_details_var["name"].replace(" ", "-").lower()}.json"):
         with open(f"data/school-sales-info/{to_details_var["name"].replace(" ", "-").lower()}.json") as f:
             school_sales_info = json.load(f)
-        school_sales_info["debit"] += df["Amount"].sum()
+        school_sales_info["info"]["debit"] += df["Amount"].sum()
         school_sales_info[memo_no] = {
             "particulars": "Sales",
             "vch_type": pdf_type,
@@ -278,10 +278,13 @@ def create_pdf():
         with open(f"data/school-sales-info/{to_details_var["name"].replace(" ", "-").lower()}.json") as f:
             school_sales_info = json.load(f)
 
-        school_sales_info["from"] = {i: from_details_var[i] for i in from_details_var}
-        school_sales_info["school_info"] = {i: to_details_var[i] for i in to_details_var}
-        school_sales_info["credit"] = 00.0
-        school_sales_info["debit"] = df["Amount"].sum()
+        school_sales_info["info"] = {
+            "from": {i: from_details_var[i] for i in from_details_var},
+            "school_info": {i: to_details_var[i] for i in to_details_var},
+            "credit": 00.0,
+            "debit": df["Amount"].sum()
+        }
+        school_sales_info["info"]["from"]["name"] = org_name
         school_sales_info[memo_no] = {
             "particulars": "Sales",
             "vch_type": pdf_type,
