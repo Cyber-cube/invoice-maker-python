@@ -287,7 +287,7 @@ def create_pdf():
         school_sales_info["info"]["from"]["name"] = org_name
         school_sales_info[memo_no] = {
             "particulars": "Sales",
-            "vch_type": pdf_type,
+            "vch_type": pdf_types[pdf_types_var.get()],
             "type": "debit",
             "amount": df["Amount"].sum()
         }
