@@ -1,35 +1,32 @@
 {
-  "from": {
-    "address_p1": "test",
-    "address_p2": "test",
-    "mobile_no": "63826492628",
-    "pan": "hfieywkcibs",
-    "gstin": "hcuyswjcisbd"
+  "info": {
+    "from": {
+      "address_p1": "test",
+      "address_p2": "test",
+      "mobile_no": "648284626",
+      "pan": "bdieuvsaj",
+      "gstin": "dieyshaud",
+      "name": "test"
+    },
+    "school_info": {
+      "name": "test school",
+      "address_p1": "test",
+      "address_p2": "test",
+      "mobile_no": "6482638463"
+    },
+    "credit": 39923.0,
+    "debit": 0.0
   },
-  "school_info": {
-    "name": "test school",
-    "address_p1": "test",
-    "address_p2": "test",
-    "mobile_no": "63826482638"
-  },
-  "credit": 0.0,
-  "debit": 36680.0,
-  "11": {
+  "13": {
     "particulars": "Sales",
-    "vch_type": "",
+    "vch_type": "PURCHASE",
     "type": "debit",
     "amount": 28340.0
   },
-  "12": {
-    "payment_date": "",
-    "particulars": "ICICI Bank Ltd",
-    "vch_type": "Receipt",
-    "amount": 20000.0
-  },
-  "12": {
+  "14": {
+    "payment_date": "24-10-24",
     "particulars": "Sales",
-    "vch_type": "",
-    "type": "debit",
-    "amount": 28340.0
+    "vch_type": "Credit Note",
+    "amount": 68263.0
   }
 }

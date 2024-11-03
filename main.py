@@ -1,4 +1,3 @@
-from operator import index
 import tkinter as tk
 import pandas as pd
 import os.path
@@ -78,9 +77,11 @@ def change_payment_type():
     if payment_types_var.get() == 1:
         bank_name_label.grid(row=4, column=0)
         bank_name.grid(row=4, column=1)
+        print(payment_types_var.get())
     elif payment_types_var.get() == 0:
         bank_name_label.place_forget()
         bank_name.place_forget()
+        print(payment_types_var.get())
 
 def publisher_focusout(event, which_pub):
     global catalog_book_autocomplete
@@ -166,8 +167,10 @@ def add_to_booklist():
             json.dump(booklist_json, f, indent=2)
 
 def set_configuration():
+    global pdf_type
     configuration["filename"] = f"{filename.get()}.pdf"
     customisatiion_status_label.config(text="Data added successfully")
+    pdf_type = pdf_types[pdf_types_var.get()]
 
 def add_to_catalog():
     global pub_keys
@@ -261,9 +264,10 @@ def create_pdf():
         with open(f"data/school-sales-info/{to_details_var["name"].replace(" ", "-").lower()}.json") as f:
             school_sales_info = json.load(f)
         school_sales_info["info"]["debit"] += df["Amount"].sum()
-        school_sales_info[memo_no] = {
+        school_sales_info["vch_info"][school_sales_info["info"]["current_session"]][memo_no] = {
             "particulars": "Sales",
             "vch_type": pdf_type,
+            "vch_no": f"{memo_no:03}",
             "type": "debit",
             "amount": df["Amount"].sum()
         }
@@ -282,12 +286,14 @@ def create_pdf():
             "from": {i: from_details_var[i] for i in from_details_var},
             "school_info": {i: to_details_var[i] for i in to_details_var},
             "credit": 00.0,
-            "debit": df["Amount"].sum()
+            "debit": df["Amount"].sum(),
+            "current_session": 1
         }
         school_sales_info["info"]["from"]["name"] = org_name
-        school_sales_info[memo_no] = {
+        school_sales_info["vch_info"][school_sales_info["info"]["current_session"]][memo_no] = {
             "particulars": "Sales",
             "vch_type": pdf_types[pdf_types_var.get()],
+            "vch_no": f"{memo_no:03}",
             "type": "debit",
             "amount": df["Amount"].sum()
         }
