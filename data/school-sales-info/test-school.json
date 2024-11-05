@@ -1,32 +1,23 @@
 {
   "info": {
-    "from": {
-      "address_p1": "test",
-      "address_p2": "test",
-      "mobile_no": "648284626",
-      "pan": "bdieuvsaj",
-      "gstin": "dieyshaud",
-      "name": "test"
-    },
-    "school_info": {
-      "name": "test school",
-      "address_p1": "test",
-      "address_p2": "test",
-      "mobile_no": "6482638463"
-    },
-    "credit": 39923.0,
-    "debit": 0.0
+    "debit": 0.0,
+    "credit": 649248.0,
+    "current_session": "1"
   },
-  "13": {
-    "particulars": "Sales",
-    "vch_type": "PURCHASE",
-    "type": "debit",
-    "amount": 28340.0
-  },
-  "14": {
-    "payment_date": "24-10-24",
-    "particulars": "Sales",
-    "vch_type": "Credit Note",
-    "amount": 68263.0
+  "vch_info": {
+    "1": {
+      "opening_balance": {
+        "date": "4-11-24",
+        "credit": 0.0,
+        "debit": 0.0
+      },
+      "14": {
+        "payment_date": "4-11-24",
+        "particulars": "Sales",
+        "vch_type": "",
+        "vch_no": "014",
+        "amount": 649248.0
+      }
+    }
   }
 }

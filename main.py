@@ -230,10 +230,11 @@ def add_to_catalog():
 
 def add_payment():
     global memo_no
-    with open(f"data/school-sales-info/{school_name.get().replace(" ", "-").lower()}.json") as f:
-        school_sales_info = json.load(f)
+
     if payment_types_var.get() == 2:
         if os.path.exists(f"data/school-sales-info/{school_name.get().replace(" ", "-").lower()}") == True:
+            with open(f"data/school-sales-info/{school_name.get().replace(" ", "-").lower()}.json") as f:
+                school_sales_info = json.load(f)
             if payment_amount.get() != "":
                 school_sales_info["info"]["debit"] -= float(payment_amount.get())
                 if school_sales_info["info"]["debit"] < 0:
@@ -245,29 +246,33 @@ def add_payment():
                 "debit": float(school_sales_info["info"]["debit"])
             }
             else:
-                school_sales_info["vch_info"][school_sales_info["info"]["current_session"]][memo_no] = {
+                school_sales_info["vch_info"][school_sales_info["info"]["current_session"]]["opening_balance"] = {
                     "date": payment_date.get(),
                     "credit": 00.0,
                     "debit": float(school_sales_info["info"]["debit"])
                 }
 
         else:
-            open(f"data/school-sales-info/{to_details_var["name"].replace(" ", "-").lower()}.json", "x").close()
+            open(f"data/school-sales-info/{school_name.get().replace(" ", "-").lower()}.json", "x").close()
     
-            with open(f"data/school-sales-info/{to_details_var["name"].replace(" ", "-").lower()}.json", "w") as f:
+            with open(f"data/school-sales-info/{school_name.get().replace(" ", "-").lower()}.json", "w") as f:
                 json.dump({}, f, indent=2)
-            with open(f"data/school-sales-info/{to_details_var["name"].replace(" ", "-").lower()}.json") as f:
+            with open(f"data/school-sales-info/{school_name.get().replace(" ", "-").lower()}.json") as f:
                 school_sales_info = json.load(f)
 
             school_sales_info["info"] = {
                 "debit": 00.0,
                 "credit": float(payment_amount.get()) if payment_amount.get() != "" else 00.0,
-                "current_session": 1
+                "current_session": "1"
             }
-            school_sales_info["vch_info"][school_sales_info["info"]["current_session"]][memo_no] = {
-                "date": payment_date.get(),
-                "credit": float(payment_amount.get()) if payment_amount.get() != "" else 00.0, 
-                "debit": float(school_sales_info["info"]["debit"])
+            school_sales_info["vch_info"] = {
+                str(school_sales_info["info"]["current_session"]): {
+                    "opening_balance": {
+                        "date": payment_date.get(),
+                        "credit": float(payment_amount.get()) if payment_amount.get() != "" else 00.0, 
+                        "debit": float(school_sales_info["info"]["debit"])
+                    }
+                }
             }
 
         with open(f"data/school-sales-info/{school_name.get().replace(" ", "-").lower()}.json", "w") as f:
@@ -280,20 +285,68 @@ def add_payment():
         payment_amount.delete(0, tk.END)
 
     else:
-        school_sales_info["vch_info"][school_sales_info["info"]["current_session"]][memo_no] = {
-            "payment_date": payment_date.get(),
-            "particulars": bank_name.get() if payment_types_var.get() == 1 else "Sales",
-            "vch_type": payment_type,
-            "amount": float(payment_amount.get())
-        }
-        school_sales_info["info"]["debit"] -= float(payment_amount.get())
-        if school_sales_info["info"]["debit"] < 0:
-            school_sales_info["info"]["credit"] += abs(school_sales_info["info"]["debit"])
-            school_sales_info["info"]["debit"] = 0.0
-        if payment_types_var.get() != 2:
+        if os.path.exists(f"data/school-sales-info/{school_name.get().replace(" ", "-").lower()}") == True:
+            with open(f"data/school-sales-info/{school_name.get().replace(" ", "-").lower()}.json") as f:
+                school_sales_info = json.load(f)
+            if "opening_balance" in school_sales_info["vch_info"][school_sales_info["info"]["current_session"]] == False:
+                school_sales_info["vch_info"] = {
+                    str(school_sales_info["info"]["current_session"]): {
+                        "opening_balance": {
+                            "date": payment_date.get(),
+                            "credit": 00.0,
+                            "debit": float(school_sales_info["info"]["debit"])
+                        }
+                    }
+                }
+
+            school_sales_info["vch_info"][school_sales_info["info"]["current_session"]][memo_no] = { 
+                "payment_date": payment_date.get(),
+                "particulars": bank_name.get() if payment_types_var.get() == 1 else "Sales",
+                "vch_type": payment_type,
+                "vch_no": f"{memo_no:03}",
+                "amount": float(payment_amount.get())
+            }
+            school_sales_info["info"]["debit"] -= float(payment_amount.get())
+            if school_sales_info["info"]["debit"] < 0:
+                school_sales_info["info"]["credit"] += abs(school_sales_info["info"]["debit"])
+                school_sales_info["info"]["debit"] = 0.0
+            
             memo_no += 1
-        payment_memo_no_label.config(text=f"Memo#: {memo_no:03}")
-        memo_label.config(text=f"Memo#: {memo_no:03}")
+            payment_memo_no_label.config(text=f"Memo#: {memo_no:03}")
+            memo_label.config(text=f"Memo#: {memo_no:03}")
+        else:
+            open(f"data/school-sales-info/{school_name.get().replace(" ", "-").lower()}.json", "x").close()
+    
+            with open(f"data/school-sales-info/{school_name.get().replace(" ", "-").lower()}.json", "w") as f:
+                json.dump({}, f, indent=2)
+            with open(f"data/school-sales-info/{school_name.get().replace(" ", "-").lower()}.json") as f:
+                school_sales_info = json.load(f)
+
+            school_sales_info["info"] = {
+                "debit": 00.0,
+                "credit": float(payment_amount.get()) if payment_amount.get() != "" else 00.0,
+                "current_session": "1"
+            }
+            school_sales_info["vch_info"] = {
+                str(school_sales_info["info"]["current_session"]): {
+                    "opening_balance": {
+                        "date": payment_date.get(),
+                        "credit": 00.0, 
+                        "debit": float(school_sales_info["info"]["debit"])
+                    }
+                }
+            }
+            school_sales_info["vch_info"][str(school_sales_info["info"]["current_session"])][memo_no] = {
+                "payment_date": payment_date.get(),
+                "particulars": bank_name.get() if payment_types_var.get() == 1 else "Sales",
+                "vch_type": payment_type,
+                "vch_no": f"{memo_no:03}",
+                "amount": float(payment_amount.get())
+            }
+            memo_no += 1
+            payment_memo_no_label.config(text=f"Memo#: {memo_no:03}")
+            memo_label.config(text=f"Memo#: {memo_no:03}")
+
         with open(f"data/school-sales-info/{school_name.get().replace(" ", "-").lower()}.json", "w") as f:
             json.dump(school_sales_info, f, indent=2)
         school_name.delete(0, tk.END)
@@ -317,7 +370,26 @@ def create_pdf():
     if os.path.exists(f"data/school-sales-info/{to_details_var["name"].replace(" ", "-").lower()}.json"):
         with open(f"data/school-sales-info/{to_details_var["name"].replace(" ", "-").lower()}.json") as f:
             school_sales_info = json.load(f)
-        school_sales_info["info"]["debit"] += df["Amount"].sum()
+        if "school_info" in school_sales_info["info"] == False:
+            school_sales_info["info"]["from"] = {i: from_details_var[i] for i in from_details_var}
+            school_sales_info["info"]["from"]["name"] = org_name
+            school_sales_info["info"]["school_info"] = {i: to_details_var[i] for i in to_details_var}
+
+        if "opening_balance" in school_sales_info["vch_info"][school_sales_info["info"]["current_session"]] == False:
+            school_sales_info["vch_info"] = {
+                str(school_sales_info["info"]["current_session"]): {
+                    "opening_balance": {
+                        "date": payment_date.get(),
+                        "credit": float(school_sales_info["info"]["credit"]),
+                        "debit": float(school_sales_info["info"]["debit"])
+                    }
+                }
+            }
+
+        school_sales_info["info"]["debit"] += df["Amount"].sum() - school_sales_info["info"]["credit"]
+        if school_sales_info["info"]["debit"] < 0:
+            school_sales_info["info"]["credit"] += abs(school_sales_info["info"]["debit"])
+            school_sales_info["info"]["debit"] = 00.0
         school_sales_info["vch_info"][school_sales_info["info"]["current_session"]][memo_no] = {
             "particulars": "Sales",
             "vch_type": pdf_type,
@@ -335,15 +407,23 @@ def create_pdf():
 
         with open(f"data/school-sales-info/{to_details_var["name"].replace(" ", "-").lower()}.json") as f:
             school_sales_info = json.load(f)
-
         school_sales_info["info"] = {
             "from": {i: from_details_var[i] for i in from_details_var},
             "school_info": {i: to_details_var[i] for i in to_details_var},
             "credit": 00.0,
             "debit": df["Amount"].sum(),
-            "current_session": 1
+            "current_session": "1"
         }
         school_sales_info["info"]["from"]["name"] = org_name
+        school_sales_info["vch_info"] = {
+            str(school_sales_info["info"]["current_session"]): {
+                "opening_balance": {
+                    "date": payment_date.get(),
+                    "credit": 00.0,
+                    "debit": 00.0
+                }
+            }
+        }
         school_sales_info["vch_info"][school_sales_info["info"]["current_session"]][memo_no] = {
             "particulars": "Sales",
             "vch_type": pdf_types[pdf_types_var.get()],
