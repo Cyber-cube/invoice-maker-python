@@ -1,7 +1,7 @@
 {
   "info": {
     "debit": 0.0,
-    "credit": 649248.0,
+    "credit": 37263.0,
     "current_session": "1"
   },
   "vch_info": {
@@ -11,12 +11,12 @@
         "credit": 0.0,
         "debit": 0.0
       },
-      "14": {
+      "15": {
         "payment_date": "4-11-24",
         "particulars": "Sales",
-        "vch_type": "",
-        "vch_no": "014",
-        "amount": 649248.0
+        "vch_type": "Credit Note",
+        "vch_no": "015",
+        "amount": 37263.0
       }
     }
   }

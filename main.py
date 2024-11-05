@@ -230,6 +230,8 @@ def add_to_catalog():
 
 def add_payment():
     global memo_no
+    global payment_type
+    payment_type = payment_types[payment_types_var.get()]
 
     if payment_types_var.get() == 2:
         if os.path.exists(f"data/school-sales-info/{school_name.get().replace(" ", "-").lower()}") == True:
