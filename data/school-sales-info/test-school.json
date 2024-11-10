@@ -1,22 +1,50 @@
 {
   "info": {
     "debit": 0.0,
-    "credit": 37263.0,
-    "current_session": "1"
+    "credit": 75281454.0,
+    "current_session": "5",
+    "from": {
+      "address_p1": "test",
+      "address_p2": "test",
+      "mobile_no": "638364846",
+      "pan": "hdishskahd",
+      "gstin": "jfiesjjduridhd",
+      "name": "test"
+    },
+    "school_info": {
+      "name": "test school",
+      "address_p1": "jsosuridjeih",
+      "address_p2": "fhriduisueid",
+      "mobile_no": "78637638563"
+    }
   },
   "vch_info": {
-    "1": {
+    "2": {
       "opening_balance": {
-        "date": "4-11-24",
+        "date": "10-11-24",
         "credit": 0.0,
         "debit": 0.0
       },
-      "15": {
-        "payment_date": "4-11-24",
+      "18": {
+        "date": "10-11-24",
         "particulars": "Sales",
         "vch_type": "Credit Note",
-        "vch_no": "015",
-        "amount": 37263.0
+        "vch_no": "018",
+        "amount": 732863.0
+      }
+    },
+    "3": {
+      "opening_balance": {
+        "date": "10-11-24",
+        "credit": 71445171.0,
+        "debit": 0.0
+      },
+      "19": {
+        "date": "10-11-24",
+        "particulars": "Sales",
+        "vch_type": "Credit Note",
+        "vch_no": "019",
+        "amount": 3836283.0
       }
     }
   }
