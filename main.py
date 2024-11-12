@@ -24,11 +24,11 @@ payment_types = ["Credit Note", "Receipt", "Opening Balance"]
 payment_types_var = tk.IntVar()
 payment_type = ""
 
-org_name = "KUMAR PUSTAK BHANDAR"
+org_name = "AYU BOOKS CENTER"
 
 from_details_var = {
-    "address_p1": "Damyanti Complex, Kurthual, Pillar No.: 47",
-    "address_p2": "NH-83, Patna 804453, (Bihar)",
+    "address_p1": "Maruti Nagar",
+    "address_p2": "Chiriyatand, Patna-01",
     "mobile_no": "9905793743",
     "pan": "AYPCK5641H",
     "gstin": "10AYPCK5641H1ZU"
@@ -498,7 +498,7 @@ def create_pdf():
 
 # from details frame
 from_details = tk.Frame(root, width=250, height=200, bd=5, relief="solid")
-from_details.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
+# from_details.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
 
 # from name
 from_name_label = tk.Label(from_details, text="From: ")
@@ -546,7 +546,7 @@ from_details_button.grid(row=6, column=1)
 
 # To details frame
 to_details = tk.Frame(root, width=250, height=200, bd=5, relief="solid")
-to_details.grid(row=0, column=1, padx=10, pady=10, sticky="nsew")
+to_details.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
 
 # from name
 to_name_label = tk.Label(to_details, text="To: ")
@@ -582,7 +582,7 @@ to_details_button.grid(row=4, column=1)
 
 # Delivery Info
 delivery_info = tk.Frame(root, width=250, height=200, bd=5, relief="solid")
-delivery_info.grid(row=0, column=2, padx=10, pady=10, sticky="nsew")
+delivery_info.grid(row=0, column=1, padx=10, pady=10, sticky="nsew")
 
 # Memo Label
 memo_label = tk.Label(delivery_info, text=f"Memo#: {memo_no:03}")
@@ -623,7 +623,7 @@ delivery_info_button.grid(row=5, column=1)
 
 # Product Input
 product_input = tk.Frame(root, width=250, height=200, bd=5, relief="solid")
-product_input.grid(row=1, column=0, padx=10, pady=10, sticky="nsew")
+product_input.grid(row=0, column=2, padx=10, pady=10, sticky="nsew")
 
 # PUB
 publisher_label = tk.Label(product_input, text="Publisher:")
@@ -680,7 +680,7 @@ create_pdf_button.grid(row=5, column=1)
 
 # Customisatiion 
 customisatiion = tk.Frame(root, width=250, height=200, bd=5, relief="solid")
-customisatiion.grid(row=1, column=1, padx=10, pady=10, sticky="nsew")
+customisatiion.grid(row=1, column=0, padx=10, pady=10, sticky="nsew")
 
 # Filenams
 filename_label = tk.Label(customisatiion, text="Filename:")
@@ -703,7 +703,7 @@ set_config_button.grid(row=2, column=1)
 
 # Add to Catalog
 catalog = tk.Frame(root, width=250, height=200, bd=5, relief="solid")
-catalog.grid(row=1, column=2, padx=10, pady=10, sticky="nsew")
+catalog.grid(row=1, column=1, padx=10, pady=10, sticky="nsew")
 
 # Publisher name
 catalog_publisher_label = tk.Label(catalog, text="Publisher:")
@@ -748,7 +748,7 @@ add_to_catalog_button.grid(row=5, column=1)
 
 # Add Payment
 payment = tk.Frame(root, width=250, height=200, bd=5, relief="solid")
-payment.grid(row=2, column=0, padx= 10, pady=10, sticky="nsew")
+payment.grid(row=1, column=2, padx= 10, pady=10, sticky="nsew")
 
 # School Name
 school_name_label = tk.Label(payment, text="School Name:")
@@ -787,7 +787,7 @@ add_payment_button.grid(row=7, column=1)
 
 # Ledger
 ledger = tk.Frame(root, height=200, width=250, bd=5, relief="solid")
-ledger.grid(row=2, column=1, padx=10, pady=10, sticky="nsew")
+ledger.grid(row=2, column=0, padx=10, pady=10, sticky="nsew")
 
 # Date
 ledger_date_label = tk.Label(ledger, text="Date:")
