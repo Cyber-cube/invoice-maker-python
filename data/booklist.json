@@ -1,16 +1,33 @@
 {
-  "test_pub": {
-    "test_book": {
-      "price": 678.0,
-      "code": "001",
-      "quantity": 220
+  "Educart": {
+    "Raspberry Play Book": {
+      "price": 1175.0,
+      "code": "0000",
+      "quantity": 0
     }
   },
-  "test": {
-    "test_book_r": {
-      "price": 739.0,
-      "code": "007",
-      "quantity": 240
+  "Bamboo Tree": {
+    "Bamboo Tree Nursery Bag": {
+      "price": 1590.0,
+      "code": "0000",
+      "quantity": 0
+    },
+    "Bamboo Tree LKG Bag": {
+      "price": 1850.0,
+      "code": "0000",
+      "quantity": 0
+    },
+    "Bamboo Tree UKG Bag": {
+      "price": 2090.0,
+      "code": "0000",
+      "quantity": 0
+    }
+  },
+  "Pattern": {
+    "Pattern Book": {
+      "price": 150.0,
+      "code": "0000",
+      "quantity": 0
     }
   }
 }

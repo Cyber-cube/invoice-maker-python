@@ -5,15 +5,19 @@ from fpdf import FPDF
 from pandas.core.computation import align
 
 class LedgerPDF(FPDF):
-    def __init__(self, from_var, school_info, date):
+    def __init__(self, from_var, school_info, date, to_date):
         super().__init__()
 
         self.from_var = from_var
         self.school_info = school_info
         self.date = date
+        self.to_date = to_date
 
         self.save_x = 0
         self.save_y = 0
+
+        self.credit = 0.0
+        self.debit = 0.0
     def header(self):
         self.set_font("Times", "B", 12)
         self.save_x = self.get_x()
@@ -50,7 +54,7 @@ class LedgerPDF(FPDF):
         self.set_xy(self.save_x, self.save_y + 20)
         self.cell(200, 5, f"{self.school_info["mobile_no"]}", align="C")
         self.ln()
-        self.cell(200, 5, f"1-1-{list(self.date.replace("-", " ").split())[2]} to {self.date}", align="C")
+        self.cell(200, 5, f"{self.date} to {self.to_date}", align="C")
         self.ln()
 
     def sales_table(self, data):
@@ -75,6 +79,28 @@ class LedgerPDF(FPDF):
         self.ln()
 
         for session in data:
+            date = list(self.date.split("/"))
+            year = int(date[2])
+            month = int(date[1])
+            day = int(date[0])
+            
+            session_date = list(data[session]["opening_balance"]["date"].split("/"))
+            session_year = int(session_date[2])
+            session_month = int(session_date[1])
+            session_day = int(session_date[0])
+            
+            to_date = list(self.to_date.split("/"))
+            to_year = int(to_date[2])
+            to_month = int(to_date[1])
+            to_day = int(to_date[0])
+
+            if session_year < year or session_year > to_year:
+                pass
+            if session_month < month or session_month > to_month:
+                pass
+            if session_day < day or session_day > to_day:
+                pass
+
             df_var = {
                 "date": [],
                 "particulars": [],
@@ -85,19 +111,32 @@ class LedgerPDF(FPDF):
             debit = []
             credit = []
             for item in data[session]:
-                if item == "opening_balance":
+                if item == "opening_balance" or item == "closing_balance":
                     self.cell(15, 5, str(data[session][item]["date"]), align="C")
-                    self.cell(70, 5, "Opening Balance", align="C")
+                    self.cell(70, 5, "Opening Balance" if item == "opening_balance" else "Closing Balance", align="C")
                     self.cell(40, 5, "", align="C")
                     self.cell(20, 5, "", align="C")
-                    self.cell(25, 5, str(data[session][item]["debit"]) if data[session][item]["debit"] != 0.0 else "", align="R")
-                    self.cell(25, 5, str(data[session][item]["credit"]) if data[session][item]["credit"] != 0.0 else "", align="R")
-                    if data[session][item]["debit"] != 0.0:
-                        debit.append(data[session][item]["debit"])
-                    if data[session][item]["credit"] != 0.0:
-                        credit.append(data[session][item]["credit"])
+                    self.cell(25, 5, str(data[session][item]["debit"]) if data[session][item]["debit"] != 0.0 else "0", align="R")
+                    self.cell(25, 5, str(data[session][item]["credit"]) if data[session][item]["credit"] != 0.0 else "0", align="R")
+                    if item != "closing_balance":
+                        if data[session][item]["debit"] != 0.0:
+                            debit.append(data[session][item]["debit"])
+                        if data[session][item]["credit"] != 0.0:
+                            credit.append(data[session][item]["credit"])
                     self.ln()
                 else:
+                    item_date = list(data[session][item]["date"].split("/"))
+                    item_year = int(item_date[2])
+                    item_month = int(item_date[1])
+                    item_day = int(item_date[0])
+
+                    if item_year > to_year:
+                        pass
+                    if item_month > to_month:
+                        pass
+                    if item_day > to_day:
+                        pass
+
                     df_var["date"].append(data[session][item]["date"])
                     df_var["particulars"].append(data[session][item]["particulars"])
                     df_var["vch_type"].append(data[session][item]["vch_type"])
@@ -110,7 +149,7 @@ class LedgerPDF(FPDF):
                 self.cell(40, 5, str(rows["vch_type"]), align="C")
                 self.cell(20, 5, str(rows["vch_no"]), align="C")
                 self.cell(25, 5, str(rows["amount"]) if rows["vch_type"] == "INVOICE" or rows["vch_type"] == "PURCHASE" or rows["vch_type"] == "PURCHASE" else "", align="R")
-                self.cell(25, 5, str(rows["amount"]) if rows["vch_type"] == "Credit Note" or rows["vch_type"] == "Receipt" else "", align="R")
+                self.cell(25, 5, str(rows["amount"]) if rows["vch_type"] == "Credit Note" or rows["vch_type"] == "Money Receipt" else "", align="R")
                 if rows["vch_type"] == "PURCHASE" or rows["vch_type"] == "PURCHASE RETURN" or rows["vch_type"] == "INVOICE":
                     debit.append(float(rows["amount"]))
                 else:
@@ -126,7 +165,7 @@ class LedgerPDF(FPDF):
             self.cell(25, 5, str(sum(credit)), align="R")
 
             self.set_xy(self.save_x, self.save_y + 6)
-            self.cell(15, 5, f"{self.date}", align="C")
+            self.cell(15, 5, f"{self.to_date}", align="C")
 
             self.set_xy(self.save_x + 15, self.save_y + 6)
             self.cell(70, 5, "Closing Balance", align="C")
@@ -137,13 +176,20 @@ class LedgerPDF(FPDF):
             self.save_y = self.get_y() + 6
             self.line(self.save_x + 145, self.save_y, self.save_x + 195, self.save_y)
             self.set_xy(self.save_x + 145, self.save_y + 1)
-            self.cell(25, 5, str(abs(sum(debit) - sum(credit))), align="R")
-            self.cell(25, 5, str(abs(sum(debit) - sum(credit))), align="R")
+
+            self.debit = 0.0 if sum(debit) - sum(credit) < 0 else abs(sum(debit) - sum(credit))
+            self.credit = 0.0 if sum(debit) - sum(credit) >= 0 else abs(sum(debit) - sum(credit))
+
+            self.cell(25, 5, str(0 if sum(debit) - sum(credit) < 0 else abs(sum(debit) - sum(credit))), align="R")
+            self.cell(25, 5, str(0 if sum(debit) - sum(credit) >= 0 else abs(sum(debit) - sum(credit))), align="R")
             self.set_xy(self.save_x + 145, self.save_y + 1)
             self.save_y = self.get_y() + 6
             self.line(self.save_x + 145, self.save_y, self.save_x + 195, self.save_y)
             self.set_xy(self.save_x, self.save_y)
             self.ln()
+
+    def return_closing_statement(self):
+        return [self.credit, self.debit]
 
 
 
@@ -161,9 +207,9 @@ if __name__ == "__main__":
         "address_p2": "odhekfiehdwudisdfheoxivwdeksj",
         "mobile_no": "7492527493628"
     }
-    with open("data/school-sales-info/test-school.json") as f:
+    with open("data/school-sales-info/wonder-wings-pre-school.json") as f:
         data = json.load(f)
-    pdf = LedgerPDF(from_data, to_data, "10-11-24")
+    pdf = LedgerPDF(from_data, to_data, "1/1/2026", "26/1/2026")
     pdf.add_page()
     pdf.school()
     pdf.sales_table(data["vch_info"])

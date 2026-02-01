@@ -90,8 +90,19 @@ class PDFInvoice(FPDF):
         self.cell(25, 5, str(total_amount), border=1, align="R")
     
     def footer(self):
+    
         self.set_font("Times", "B", 8)
-        self.set_xy(-20, -15)
+        self.set_xy(175, -30)
         self.cell(20, 5, f"For {self.org_name}", align="C")
-        self.set_xy(-20, -5)
+        self.set_xy(175, -10)
         self.cell(20, 5, "Auth. Signatory", align="C")
+        self.set_font("Times", "B")
+        self.set_xy(5, -10)
+        self.cell(30, 5, "Books once sold cannot be exchanged or returned.")
+
+
+if __name__ == "__main__":
+    pdf = PDFInvoice("Saoumya Book Point", "Invoice")
+    pdf.add_page()
+    pdf.output("pdfs/mmm.pdf")
+    

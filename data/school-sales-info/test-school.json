@@ -1,7 +1,7 @@
 {
   "info": {
     "debit": 0.0,
-    "credit": 75281454.0,
+    "credit": 9630650937.0,
     "current_session": "5",
     "from": {
       "address_p1": "test",
@@ -45,6 +45,41 @@
         "vch_type": "Credit Note",
         "vch_no": "019",
         "amount": 3836283.0
+      }
+    },
+    "5": {
+      "opening_balance": {
+        "date": "",
+        "credit": 75281454.0,
+        "debit": 0.0
+      },
+      "20": {
+        "date": "999",
+        "particulars": "Sales",
+        "vch_type": "PURCHASE",
+        "vch_no": "020",
+        "amount": 43120.0
+      },
+      "21": {
+        "date": "999",
+        "particulars": "Sales",
+        "vch_type": "INVOICE",
+        "vch_no": "021",
+        "amount": 28340.0
+      },
+      "22": {
+        "date": "999",
+        "particulars": "Sales",
+        "vch_type": "INVOICE",
+        "vch_no": "022",
+        "amount": 43120.0
+      },
+      "23": {
+        "date": "...",
+        "particulars": "Sales",
+        "vch_type": "",
+        "vch_no": "023",
+        "amount": 1175.0
       }
     }
   }
