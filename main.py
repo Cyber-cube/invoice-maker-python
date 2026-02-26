@@ -263,6 +263,8 @@ def add_to_catalog():
 
     catalog_publisher_autocomplete = AutoComplete(catalog_publisher, pub_keys)
     catalog_book_autocomplete = AutoComplete(catalog_book, book_name_keys)
+    publisher_autocomplete = AutoComplete(publisher, pub_keys)
+    book_autocomplete = AutoComplete(book_name, pub_keys)
 
     if publisher.get().strip() != "" and book_name.get().strip() != "":
         quantity_label.config(text=f"Quantity: {int(catalog_quantity.get())}")
