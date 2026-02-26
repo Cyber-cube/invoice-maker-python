@@ -12,10 +12,10 @@ class AutoComplete:
         self.is_frame_visible = False
 
         # Create a listbox but don't place it initially
-        self.listbox = tk.Listbox(self.frame, width=30, height=8)
+        self.listbox = tk.Listbox(self.frame, width=50, height=10)
 
         # Add the scrollbar
-        self.scrollbar = tk.Scrollbar(self.frame, orient=tk.VERTICAL)
+        self.scrollbar = tk.Scrollbar(self.listbox, orient=tk.VERTICAL)
         self.listbox.config(yscrollcommand=self.scrollbar.set)
         self.scrollbar.config(command=self.listbox.yview)
 

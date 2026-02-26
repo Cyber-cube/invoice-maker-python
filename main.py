@@ -27,7 +27,7 @@ payment_type = ""
 
 modes = ["Cash", "Cheque"]
 modes_var = tk.IntVar()
-mode = ""
+mode = "Cash"
 
 org_name = "SAOUMYA BOOK POINT"
 
@@ -46,6 +46,7 @@ to_details_var = {
     "mobile_no": "9818220408"
 }
 memo_no = global_settings_json["memo_no"]
+payment_memo_no = global_settings_json["payment_memo_no"]
 delivery_info_var = {
     "memo": f"{memo_no:03}",
     "date": "26-09-24",
@@ -233,7 +234,10 @@ def add_to_catalog():
         code_func = booklist_json[publisher_func][book_name_func]["code"]
 
     if catalog_quantity.get().strip() != "":
-        quantity_func = int(catalog_quantity.get())
+        try:
+            quantity_func = int(catalog_quantity.get()) + booklist_json[publisher_func][book_name_func]["quantity"]
+        except KeyError:
+            quantity_func = int(catalog_quantity.get())
     else:
         quantity_func = booklist_json[publisher_func][book_name_func]["quantity"]
 
@@ -272,6 +276,7 @@ def add_to_catalog():
         json.dump(booklist_json, f, indent=2)
 
 def create_ledger():
+    global memo_no
     with open(f"data/school-sales-info/{ledger_school_name.get().replace(" ", "-").lower()}.json") as f:
         school_sales_info = json.load(f)
     pdf = LedgerPDF(school_sales_info["info"]["from"], school_sales_info["info"]["school_info"], ledger_from_date.get(), ledger_date.get())
@@ -289,7 +294,7 @@ def create_ledger():
         "debit": closing_statement[1]
     }
 
-    pdf.output(f"pdfs/{ledger_school_name.get().replace(" ", "-").lower()}-ledger.pdf")
+    pdf.output(f"pdfs/{ledger_school_name.get().replace(" ", "-").lower()}-ledger - {memo_no}.pdf")
     
     school_sales_info["info"]["current_session"] = str(1 + int(school_sales_info["info"]["current_session"]))
 
@@ -301,7 +306,7 @@ def create_ledger():
 
 
 def add_payment():
-    global memo_no
+    global payment_memo_no
     global payment_type
     payment_type = payment_types[payment_types_var.get()]
 
@@ -380,11 +385,11 @@ def add_payment():
                         "debit": float(school_sales_info["info"]["debit"])
                     }
                 }
-            school_sales_info["vch_info"][school_sales_info["info"]["current_session"]][memo_no] = { 
+            school_sales_info["vch_info"][school_sales_info["info"]["current_session"]][f"{payment_memo_no}-p"] = { 
                 "date": transaction_date.get(),
                 "particulars": bank_name.get() if payment_types_var.get() == 1 else "Sales",
                 "vch_type": payment_type,
-                "vch_no": f"{memo_no:03}",
+                "vch_no": f"{payment_memo_no:03}",
                 "amount": float(payment_amount.get())
             }
             school_sales_info["info"]["debit"] -= float(payment_amount.get())
@@ -392,12 +397,6 @@ def add_payment():
                 school_sales_info["info"]["credit"] += abs(school_sales_info["info"]["debit"])
                 school_sales_info["info"]["debit"] = 0.0
             
-            memo_no += 1
-            payment_memo_no_label.config(text=f"Memo#: {memo_no:03}")
-            memo_label.config(text=f"Memo#: {memo_no:03}")
-            global_settings_json["memo_no"] += 1
-            with open("data/global-settings.json", "w") as f:
-                json.dump(global_settings_json, f, indent=2)
         else:
             open(f"data/school-sales-info/{school_name.get().replace(" ", "-").lower()}.json", "x").close()
     
@@ -418,8 +417,8 @@ def add_payment():
                     "debit": float(school_sales_info["info"]["debit"])
                 }
             }
-            school_sales_info["vch_info"][str(school_sales_info["info"]["current_session"])][memo_no] = {
-                "vch_no": memo_no,
+            school_sales_info["vch_info"][str(school_sales_info["info"]["current_session"])][f"{payment_memo_no}-p"] = {
+                "vch_no": payment_memo_no,
                 "receipt_date": payment_date.get(),
                 "school_name": school_name.get(),
                 "amount": payment_amount.get(),
@@ -427,15 +426,9 @@ def add_payment():
                 "bank": bank_name.get(),
                 "transaction_date": transaction_date.get()
             }
-            memo_no += 1
-            payment_memo_no_label.config(text=f"Memo#: {memo_no:03}")
-            memo_label.config(text=f"Memo#: {memo_no:03}")
-            global_settings_json["memo_no"] += 1
-            with open("data/global-settings.json", "w") as f:
-                json.dump(global_settings_json, f, indent=2)
 
         details = {
-            "vch_no": memo_no,
+            "vch_no": payment_memo_no,
             "date": payment_date.get(),
             "school_name": school_name.get(),
             "amount": payment_amount.get(),
@@ -446,7 +439,13 @@ def add_payment():
         pdf = PaymentSlip(org_name)
         pdf.add_page()
         pdf.add_info(details)
-        pdf.output(f"pdfs/{school_name.get().replace(" ", "-").lower()}-payment.pdf")
+        pdf.output(f"pdfs/{school_name.get().replace(" ", "-").lower()}-payment-{payment_memo_no}.pdf")
+        payment_memo_no += 1
+        global_settings_json["payment_memo_no"] += 1
+        with open("data/global-settings.json", "w") as f:
+            json.dump(global_settings_json, f, indent=2)
+        payment_memo_no_label.config(text=f"Memo#: {payment_memo_no:03}")
+        memo_label.config(text=f"Memo#: {payment_memo_no:03}")
 
         with open(f"data/school-sales-info/{school_name.get().replace(" ", "-").lower()}.json", "w") as f:
             json.dump(school_sales_info, f, indent=2)
@@ -553,9 +552,9 @@ def create_pdf():
         pdf.from_details(from_details_var)
         pdf.to_details(to_details_var, delivery_info_var)
         pdf.product_table(df.iloc[i:i + chunk_size])
-        pdf.output(f"pdfs/{configuration["filename"]}")
         for j in booklist:
             booklist[j] = []
+    pdf.output(f"pdfs/{configuration["filename"]} - {memo_no}.pdf")
     sl_counter = 1
     global_settings_json["memo_no"] += 1
     memo_no = global_settings_json["memo_no"]
@@ -625,7 +624,6 @@ from_status_label.grid(row=6, column=0)
 # set button
 from_details_button = tk.Button(from_details, text="Set", command=from_details_callback)
 from_details_button.grid(row=6, column=1)
-
 
 # To details frame
 to_details = tk.Frame(root, width=250, height=200, bd=5, relief="solid")
@@ -842,6 +840,8 @@ school_name_label.grid(row=0, column=0)
 school_name = tk.Entry(payment)
 school_name.grid(row=0, column=1)
 
+school_name_autocomplete = AutoComplete(school_name, school_names)
+
 # Transaction Date
 transaction_date_label = tk.Label(payment, text="Transaction Date:")
 transaction_date_label.grid(row=1, column=0)
@@ -876,7 +876,7 @@ payment_date = tk.Entry(payment)
 payment_date.grid(row=8, column=1)
 
 # Memo No.
-payment_memo_no_label = tk.Label(payment, text=f"Memo#: {memo_no:03}")
+payment_memo_no_label = tk.Label(payment, text=f"Memo#: {payment_memo_no:03}")
 payment_memo_no_label.grid(row=9, column=0)
 
 # Add Payment button
@@ -904,6 +904,8 @@ ledger_school_name_label = tk.Label(ledger, text="School Name:")
 ledger_school_name_label.grid(row=2, column=0)
 ledger_school_name = tk.Entry(ledger)
 ledger_school_name.grid(row=2, column=1)
+
+ledger_school_name_autocomplete = AutoComplete(ledger_school_name, school_names)
 
 # Create Ledger
 create_ledger_button = tk.Button(ledger, text="Create Ledger", command=create_ledger)

@@ -27,8 +27,8 @@ class PaymentSlip(FPDF):
         self.save_x = self.get_x()
         self.save_y = self.get_y()
 
-        self.cell(None, None, f"Memo No: {details["memo_no"]}", align="L")
-        self.cell(0, None, f"Date: {details["receipt_date"]}", align="R")
+        self.cell(None, None, f"Memo No: {details["vch_no"]}", align="L")
+        self.cell(0, None, f"Date: {details["date"]}", align="R")
         self.ln(self.font_size + 8)
 
         self.set_font("NotoFont", "", 10)
@@ -41,9 +41,9 @@ class PaymentSlip(FPDF):
         self.ln(self.font_size + 8)
 
         self.cell(None, None, "By Cash/Cheque:")
-        self.cell(80, None, details["mode"], "B")
+        self.cell(80, None, details["vch_type"], "B")
         self.cell(None, None, "Bank")
-        self.cell(40, None, details["bank"], "B")
+        self.cell(40, self.font_size if details["particulars"] == "" else None, details["particulars"], "B")
         self.cell(None, None, "Date")
         self.cell(0, None, details["transaction_date"], "B")
         self.ln(self.font_size + 8)
