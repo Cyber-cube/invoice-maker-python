@@ -192,7 +192,6 @@ def add_to_booklist():
         booklist["Price"].append(booklist_json[publisher.get()][book_name.get()]["price"])
     
         sl_counter += 1
-        booklist_json[publisher.get()][book_name.get()]["quantity"] = booklist_json[publisher.get()][book_name.get()]["quantity"] - int(quantity.get())
             
         quantity_label.config(text="Quantity:")
         book_name.delete(0, tk.END)
@@ -554,6 +553,8 @@ def create_pdf():
         pdf.from_details(from_details_var)
         pdf.to_details(to_details_var, delivery_info_var)
         pdf.product_table(df.iloc[i:i + chunk_size])
+        for i, rows in df.iloc[i:i + chunk_size].iterrows():
+            booklist_json[rows["Pub"]][rows["Title"]]["quantity"] = booklist_json[rows["Pub"]][rows["Title"]]["quantity"] - int(rows["Qty"])
         for j in booklist:
             booklist[j] = []
     pdf.output(f"pdfs/{configuration["filename"]} - {memo_no}.pdf")
