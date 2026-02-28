@@ -1,6 +1,9 @@
-date = "1-01-2026"
-year = int(list(date.split("-"))[2])
-month = int(list(date.split("-"))[1])
-date = int(list(date.split("-"))[0])
+data = {
+    "test": {
+        "meow": "huehuehuehue",
+        "meow2": "test"
+    }
+}
 
-print(year, month, date)
+for value in data.values():
+    print(value["meow"])

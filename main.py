@@ -82,6 +82,85 @@ for i in school_names_raw:
 pub_keys = list(booklist_json.keys())
 book_name_keys = {i: list(booklist_json[i].keys()) for i in booklist_json}
 
+def save_state():
+    if os.path.exists(f"data/school-sales-info/{to_details_var["name"].replace(" ", "-").lower()}.json"):
+        with open(f"data/school-sales-info/{to_details_var["name"].replace(" ", "-").lower()}.json") as f:
+            school_info = json.load(f)
+
+        try:
+            school_info.pop("save_state")
+        except KeyError:
+            pass
+
+        data = {
+          "date": "dd-mm-yyyy",
+          "memo_no": "memo_no",
+          "delivery_by": "method",
+          "booklist": {
+          }
+        }
+
+        data["date"] = date.get()
+        data["memo_no"] = memo_no
+        data["delivery_by"] = delivery_by.get()
+        chunk_size = 32
+        df = pd.DataFrame(booklist)
+        for i in range(0, len(df), chunk_size):
+            for i, rows in df.iloc[i:i + chunk_size].iterrows():
+                data["booklist"][rows["Sl"]] = {
+                    "publisher_name": rows["Pub"],
+                    "book_name": rows["Title"],
+                    "quantity": rows["Qty"],
+                    "discount": rows["Disc"]
+                }
+        
+        school_info["save_state"] = data
+        with open(f"data/school-sales-info/{to_details_var["name"].replace(" ", "-").lower()}.json", "w") as f:
+            json.dump(school_info, f, indent=2)
+    else:
+        open(f"data/school-sales-info/{to_details_var["name"].replace(" ", "-").lower()}.json", "x").close()
+        with open(f"data/school-sales-info/{to_details_var["name"].replace(" ", "-").lower()}.json", "w") as f:
+            json.dump({}, f, indent=2)
+        
+        with open(f"data/school-sales-info/{to_details_var["name"].replace(" ", "-").lower()}.json") as f:
+            school_info = json.load(f)
+        
+        school_info["info"] = {
+            "from": {i: from_details_var[i] for i in from_details_var},
+            "school_info": {i: to_details_var[i] for i in to_details_var},
+            "credit": 00.0,
+            "debit": 00.0,
+            "current_session": "1"
+        }
+        school_info["info"]["from"]["name"] = org_name
+        school_info["vch_info"] = {}
+        data = {
+          "date": "dd-mm-yyyy",
+          "memo_no": "memo_no",
+          "delivery_by": "method",
+          "booklist": {
+          }
+        }
+
+        data["date"] = date.get()
+        data["memo_no"] = memo_no
+        data["delivery_by"] = delivery_by.get()
+        chunk_size = 32
+        df = pd.DataFrame(booklist)
+        for i in range(0, len(df), chunk_size):
+            for i, rows in df.iloc[i:i + chunk_size].iterrows():
+                data["booklist"][rows["Sl"]] = {
+                    "publisher_name": rows["Pub"],
+                    "book_name": rows["Title"],
+                    "quantity": rows["Qty"],
+                    "discount": rows["Disc"]
+                }
+        
+        school_info["save_state"] = data
+        
+        with open(f"data/school-sales-info/{to_details_var["name"].replace(" ", "-").lower()}.json", "w") as f:
+            json.dump(school_info, f, indent=2)
+        
 def change_pdf_type():
     global pdf_type
     pdf_type = pdf_types[pdf_types_var.get()]
@@ -148,6 +227,22 @@ def to_name_focusout(event):
             to_address_p1.insert(0, file["info"]["school_info"]["address_p1"])
             to_address_p2.insert(0, file["info"]["school_info"]["address_p2"])
             to_mobile_no.insert(0, file["info"]["school_info"]["mobile_no"])
+            try:
+                date.insert(0, file["save_state"]["date"])
+                delivery_by.insert(0, file["save_state"]["delivery_by"])
+                memo_no = file["save_state"]["memo_no"]
+                memo_label.config(text=f"Memo#: {memo_no:03}")
+
+                booklist_temp: dict = file["save_state"]["booklist"]
+                for value in booklist_temp.values():
+                   publisher.insert(0, str(value["publisher_name"]))
+                   book_name.insert(0, str(value["book_name"])) 
+                   quantity.insert(0, int(value["quantity"]))
+                   discount.insert(0, float(value["discount"]))
+                   print("test")
+                   add_to_booklist()
+            except KeyError:
+                pass
     except Exception as e:
         pass
 
@@ -181,6 +276,7 @@ def add_to_booklist():
         product_input_status.config(text="Something is not filled")
         print(booklist)
     else:
+        print("test")
         global sl_counter
         global booklist_json
         booklist["Sl"].append(sl_counter)
@@ -201,9 +297,7 @@ def add_to_booklist():
         
         current_sl_label.config(text=f"Current Sl No.: {sl_counter}")
         product_input_status.config(text="")
-        
-        with open("data/booklist.json", "w") as f:
-            json.dump(booklist_json, f, indent=2)
+        print(booklist)
 
 def set_configuration():
     global pdf_type
@@ -558,8 +652,12 @@ def create_pdf():
         for j in booklist:
             booklist[j] = []
     pdf.output(f"pdfs/{configuration["filename"]} - {memo_no}.pdf")
+    with open("data/booklist.json", "w") as f:
+        json.dump(booklist_json, f, indent=2)
     sl_counter = 1
-    global_settings_json["memo_no"] += 1
+
+    if memo_no == global_settings_json["memo_no"]:
+        global_settings_json["memo_no"] += 1
     memo_no = global_settings_json["memo_no"]
     delivery_info_var["memo"] = f"{memo_no:03}"
 
@@ -787,6 +885,11 @@ customisatiion_status_label.grid(row=4, column=0)
 # Set Configuration
 set_config_button = tk.Button(customisatiion, text="Set Configuration", command=set_configuration)
 set_config_button.grid(row=2, column=1)
+
+# Save State
+save_state_button = tk.Button(customisatiion, text="Save State", command=save_state)
+save_state_button.grid(row=3, column=1)
+
 
 # Add to Catalog
 catalog = tk.Frame(root, width=250, height=200, bd=5, relief="solid")
