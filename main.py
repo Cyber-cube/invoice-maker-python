@@ -56,6 +56,9 @@ delivery_info_var = {
 }
 
 sl_counter = 1
+# Maybe not needed
+backup_sl_counter = [1]
+previous_count = 0
 
 booklist = {
     "Sl": [],
@@ -81,6 +84,68 @@ for i in school_names_raw:
 
 pub_keys = list(booklist_json.keys())
 book_name_keys = {i: list(booklist_json[i].keys()) for i in booklist_json}
+
+def previous_book():
+    global backup_sl_counter
+    global sl_counter
+    global previous_count
+    # Maybe not needed
+    backup_sl_counter.append(sl_counter)
+    if sl_counter == 1:
+        previous_button.config(state=tk.DISABLED)
+    else:
+        previous_button.config(state=tk.ACTIVE)
+    
+    if sl_counter == backup_sl_counter[-1]:
+        next_button.config(state=tk.DISABLED)
+    else:
+        next_button.config(state=tk.ACTIVE)
+
+    publisher.delete(0, tk.END)
+    book_name.delete(0, tk.END)
+    quantity.delete(0, tk.END)
+    discount.delete(0, tk.END)
+    
+    sl_counter -= 1
+    current_sl_label.config(text=f"Current Sl No: {sl_counter}")
+    quantity_label.config(text="Quantity:")
+    publisher.insert(0, booklist["Pub"][sl_counter - 1])
+    book_name.insert(0, booklist["Title"][sl_counter - 1])
+    quantity.insert(0, booklist["Qty"][sl_counter - 1])
+    discount.insert(0, booklist["Disc"][sl_counter - 1])
+
+    previous_count += 1
+
+
+def next_book():
+    global sl_counter
+    global backup_sl_counter
+    global previous_count
+    # Maybe not needed
+    backup_sl_counter.append(sl_counter)
+    if sl_counter == 1:
+        previous_button.config(state=tk.DISABLED)
+    else:
+        previous_button.config(state=tk.ACTIVE)
+    
+    if sl_counter == backup_sl_counter[-1 - previous_count]:
+        next_button.config(state=tk.DISABLED)
+    else:
+        next_button.config(state=tk.ACTIVE)
+
+    publisher.delete(0, tk.END)
+    book_name.delete(0, tk.END)
+    quantity.delete(0, tk.END)
+    discount.delete(0, tk.END)
+    
+    sl_counter += 1
+    current_sl_label.config(text=f"Current Sl No: {sl_counter}")
+    quantity_label.config(text="Quantity:")
+    publisher.insert(0, booklist["Pub"][sl_counter - 1])
+    book_name.insert(0, booklist["Title"][sl_counter - 1])
+    quantity.insert(0, booklist["Qty"][sl_counter - 1])
+    discount.insert(0, booklist["Disc"][sl_counter - 1])
+    previous_count = 0
 
 def save_state():
     if os.path.exists(f"data/school-sales-info/{to_details_var["name"].replace(" ", "-").lower()}.json"):
@@ -276,28 +341,75 @@ def add_to_booklist():
         product_input_status.config(text="Something is not filled")
         print(booklist)
     else:
-        print("test")
         global sl_counter
         global booklist_json
-        booklist["Sl"].append(sl_counter)
-        booklist["Code"].append(booklist_json[publisher.get()][book_name.get()]["code"])
-        booklist["Title"].append(book_name.get())
-        booklist["Pub"].append(publisher.get())
-        booklist["Qty"].append(int(quantity.get()))
-        booklist["Disc"].append(float(discount.get()))
-        booklist["Price"].append(booklist_json[publisher.get()][book_name.get()]["price"])
-    
-        sl_counter += 1
-            
-        quantity_label.config(text="Quantity:")
-        book_name.delete(0, tk.END)
-        quantity.delete(0, tk.END)
-        discount.delete(0, tk.END)
-        publisher.delete(0, tk.END)
+        global previous_count
+
+        try:
+            if sl_counter == 1:
+                previous_button.config(state=tk.DISABLED)
+            else:
+                previous_button.config(state=tk.ACTIVE)
+
+            if sl_counter == backup_sl_counter[-1 - previous_count]:
+                next_button.config(state=tk.DISABLED)
+            else:
+                next_button.config(state=tk.ACTIVE)
+        except IndexError:
+            pass
         
-        current_sl_label.config(text=f"Current Sl No.: {sl_counter}")
-        product_input_status.config(text="")
-        print(booklist)
+        print(sl_counter, backup_sl_counter)
+        if sl_counter != backup_sl_counter[-1]:
+            booklist["Sl"].pop(sl_counter - 1)
+            booklist["Code"].pop(sl_counter - 1)
+            booklist["Title"].pop(sl_counter - 1)
+            booklist["Pub"].pop(sl_counter - 1)
+            booklist["Qty"].pop(sl_counter - 1)
+            booklist["Disc"].pop(sl_counter - 1)
+            booklist["Price"].pop(sl_counter - 1)
+            booklist["Sl"].insert(sl_counter - 1, sl_counter)
+            booklist["Code"].insert(sl_counter - 1, booklist_json[publisher.get()][book_name.get()]["code"])
+            booklist["Title"].insert(sl_counter - 1, book_name.get())
+            booklist["Pub"].insert(sl_counter - 1, publisher.get())
+            booklist["Qty"].insert(sl_counter - 1, int(quantity.get()))
+            booklist["Disc"].insert(sl_counter - 1, float(discount.get()))
+            booklist["Price"].insert(sl_counter - 1, booklist_json[publisher.get()][book_name.get()]["price"])
+            sl_counter += 1
+            quantity_label.config(text="Quantity:")
+            book_name.delete(0, tk.END)
+            quantity.delete(0, tk.END)
+            discount.delete(0, tk.END)
+            publisher.delete(0, tk.END)
+            backup_sl_counter.append(sl_counter)
+            current_sl_label.config(text=f"Current Sl No.: {sl_counter}")
+            previous_count = 0
+        else:
+            booklist["Sl"].append(sl_counter)
+            booklist["Code"].append(booklist_json[publisher.get()][book_name.get()]["code"])
+            booklist["Title"].append(book_name.get())
+            booklist["Pub"].append(publisher.get())
+            booklist["Qty"].append(int(quantity.get()))
+            booklist["Disc"].append(float(discount.get()))
+            booklist["Price"].append(booklist_json[publisher.get()][book_name.get()]["price"])
+            sl_counter += 1
+            backup_sl_counter.append(sl_counter)
+            quantity_label.config(text="Quantity:")
+            book_name.delete(0, tk.END)
+            quantity.delete(0, tk.END)
+            discount.delete(0, tk.END)
+            publisher.delete(0, tk.END)
+            current_sl_label.config(text=f"Current Sl No.: {sl_counter}")
+            product_input_status.config(text="")
+
+            if sl_counter == 1:
+                previous_button.config(state=tk.DISABLED)
+            else:
+                previous_button.config(state=tk.ACTIVE)
+
+            if sl_counter == backup_sl_counter[-1 - previous_count]:
+                next_button.config(state=tk.DISABLED)
+            else:
+                next_button.config(state=tk.ACTIVE)
 
 def set_configuration():
     global pdf_type
@@ -845,23 +957,31 @@ discount_label.grid(row=3, column=0)
 discount = tk.Entry(product_input)
 discount.grid(row=3, column=1)
 
+# Previous
+previous_button = tk.Button(product_input, text="<-", command=previous_book)
+previous_button.config(state=tk.DISABLED)
+previous_button.grid(row=4, column=0)
+
+# Next
+next_button = tk.Button(product_input, text="->", command=next_book)
+next_button.config(state=tk.DISABLED)
+next_button.grid(row=4, column=1)
 
 # Current Sl
 current_sl_label = tk.Label(product_input, text=f"Current Sl No.: {sl_counter}")
-current_sl_label.grid(row=4, column=0)
+current_sl_label.grid(row=5, column=0)
 
 # Add to list
 add_to_booklist_button = tk.Button(product_input, text="Add to Booklist", command=add_to_booklist)
-add_to_booklist_button.grid(row=4, column=1)
+add_to_booklist_button.grid(row=5, column=1)
 
 # Status
 product_input_status = tk.Label(product_input, text="")
-product_input_status.grid(row=5, column=0)
+product_input_status.grid(row=6, column=0)
 
 # Create PDF
 create_pdf_button = tk.Button(product_input, text="Create PDF", command=create_pdf)
-create_pdf_button.grid(row=5, column=1)
-
+create_pdf_button.grid(row=6, column=1)
 
 # Customisatiion 
 customisatiion = tk.Frame(root, width=250, height=200, bd=5, relief="solid")
