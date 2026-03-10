@@ -11,6 +11,8 @@ class PDFInvoice(FPDF):
         self.save_y = 0
 
     def header(self) -> None:
+        self.add_font("NotoFont", "B", "fonts/Noto_Serif_Devanagari/NotoSerifDevanagari-VariableFont_wdth,wght.ttf")
+        self.add_font("NotoFont", "", "fonts/Noto_Serif_Devanagari/NotoSerifDevanagari-VariableFont_wdth,wght.ttf")
         self.set_font("Times", "B", 12)
         self.cell(200, 10, f"{self.pdf_type}", align="C" )
         self.ln()
@@ -57,7 +59,7 @@ class PDFInvoice(FPDF):
     def product_table(self, df):
         self.set_xy(self.save_x, self.save_y + 24)
 
-        self.set_font("Times", "", 9) 
+        self.set_font("NotoFont", "", 9) 
         self.cell(10, 5, "Sl", border=1)
         self.cell(15, 5, "Code", border=1)
         self.cell(80, 5, "Title", border=1)

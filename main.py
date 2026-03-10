@@ -91,30 +91,34 @@ def previous_book():
     global previous_count
     # Maybe not needed
     backup_sl_counter.append(sl_counter)
+    previous_count += 1
+    if sl_counter == backup_sl_counter[-previous_count]:
+        print("Oiia")
+        next_button.config(state=tk.DISABLED)
+    else:
+        print("Oiia meow", sl_counter == backup_sl_counter[-previous_count])
+        next_button.config(state=tk.ACTIVE)
+    sl_counter -= 1
     if sl_counter == 1:
         previous_button.config(state=tk.DISABLED)
     else:
         previous_button.config(state=tk.ACTIVE)
     
-    if sl_counter == backup_sl_counter[-1]:
-        next_button.config(state=tk.DISABLED)
-    else:
-        next_button.config(state=tk.ACTIVE)
 
     publisher.delete(0, tk.END)
     book_name.delete(0, tk.END)
     quantity.delete(0, tk.END)
     discount.delete(0, tk.END)
     
-    sl_counter -= 1
+    print(previous_count, "meow")
+
     current_sl_label.config(text=f"Current Sl No: {sl_counter}")
     quantity_label.config(text="Quantity:")
     publisher.insert(0, booklist["Pub"][sl_counter - 1])
     book_name.insert(0, booklist["Title"][sl_counter - 1])
     quantity.insert(0, booklist["Qty"][sl_counter - 1])
     discount.insert(0, booklist["Disc"][sl_counter - 1])
-
-    previous_count += 1
+    print(backup_sl_counter[0 - previous_count], previous_count, backup_sl_counter)
 
 
 def next_book():
@@ -123,29 +127,33 @@ def next_book():
     global previous_count
     # Maybe not needed
     backup_sl_counter.append(sl_counter)
+    previous_count -= 1
+    if sl_counter == backup_sl_counter[0 - previous_count]:
+        next_button.config(state=tk.DISABLED)
+    else:
+        next_button.config(state=tk.ACTIVE)
+    sl_counter += 1
+    print(previous_count, "from next_book")
     if sl_counter == 1:
         previous_button.config(state=tk.DISABLED)
     else:
         previous_button.config(state=tk.ACTIVE)
     
-    if sl_counter == backup_sl_counter[-1 - previous_count]:
-        next_button.config(state=tk.DISABLED)
-    else:
-        next_button.config(state=tk.ACTIVE)
 
     publisher.delete(0, tk.END)
     book_name.delete(0, tk.END)
     quantity.delete(0, tk.END)
     discount.delete(0, tk.END)
     
-    sl_counter += 1
     current_sl_label.config(text=f"Current Sl No: {sl_counter}")
     quantity_label.config(text="Quantity:")
-    publisher.insert(0, booklist["Pub"][sl_counter - 1])
-    book_name.insert(0, booklist["Title"][sl_counter - 1])
-    quantity.insert(0, booklist["Qty"][sl_counter - 1])
-    discount.insert(0, booklist["Disc"][sl_counter - 1])
-    previous_count = 0
+    try:
+        publisher.insert(0, booklist["Pub"][sl_counter - 1])
+        book_name.insert(0, booklist["Title"][sl_counter - 1])
+        quantity.insert(0, booklist["Qty"][sl_counter - 1])
+        discount.insert(0, booklist["Disc"][sl_counter - 1])
+    except IndexError:
+        pass
 
 def save_state():
     if os.path.exists(f"data/school-sales-info/{to_details_var["name"].replace(" ", "-").lower()}.json"):
@@ -225,7 +233,41 @@ def save_state():
         
         with open(f"data/school-sales-info/{to_details_var["name"].replace(" ", "-").lower()}.json", "w") as f:
             json.dump(school_info, f, indent=2)
-        
+
+def clear_save_state():
+    with open(f"data/school-sales-info/{to_details_var["name"].replace(" ", "-").lower()}.json") as f:
+        school_info = json.load(f)
+    school_info.pop("save_state")
+    with open(f"data/school-sales-info/{to_details_var["name"].replace(" ", "-").lower()}.json", "w") as f:
+        json.dump(school_info, f, indent=2)
+
+def load_save_state():
+    try:
+        if to_name.get().split() != "":
+            file_name = to_name.get().lower().split(" ")
+            new_file_name = "-".join(file_name)
+            with open(f"data/school-sales-info/{new_file_name}.json") as f:
+                file = json.load(f)
+            try:
+                date.delete(0, tk.END)
+                delivery_by.delete(0, tk.END)
+                date.insert(0, file["save_state"]["date"])
+                delivery_by.insert(0, file["save_state"]["delivery_by"])
+                memo_no = file["save_state"]["memo_no"]
+                memo_label.config(text=f"Memo#: {memo_no:03}")
+
+                booklist_temp: dict = file["save_state"]["booklist"]
+                for value in booklist_temp.values():
+                   publisher.insert(0, str(value["publisher_name"]))
+                   book_name.insert(0, str(value["book_name"])) 
+                   quantity.insert(0, int(value["quantity"]))
+                   discount.insert(0, float(value["discount"]))
+                   add_to_booklist()
+            except KeyError:
+                pass
+    except Exception as e:
+        pass
+
 def change_pdf_type():
     global pdf_type
     pdf_type = pdf_types[pdf_types_var.get()]
@@ -289,25 +331,12 @@ def to_name_focusout(event):
             new_file_name = "-".join(file_name)
             with open(f"data/school-sales-info/{new_file_name}.json") as f:
                 file = json.load(f)
+            to_address_p1.delete(0, tk.END)
+            to_address_p2.delete(0, tk.END)
+            to_mobile_no.delete(0, tk.END)
             to_address_p1.insert(0, file["info"]["school_info"]["address_p1"])
             to_address_p2.insert(0, file["info"]["school_info"]["address_p2"])
             to_mobile_no.insert(0, file["info"]["school_info"]["mobile_no"])
-            try:
-                date.insert(0, file["save_state"]["date"])
-                delivery_by.insert(0, file["save_state"]["delivery_by"])
-                memo_no = file["save_state"]["memo_no"]
-                memo_label.config(text=f"Memo#: {memo_no:03}")
-
-                booklist_temp: dict = file["save_state"]["booklist"]
-                for value in booklist_temp.values():
-                   publisher.insert(0, str(value["publisher_name"]))
-                   book_name.insert(0, str(value["book_name"])) 
-                   quantity.insert(0, int(value["quantity"]))
-                   discount.insert(0, float(value["discount"]))
-                   print("test")
-                   add_to_booklist()
-            except KeyError:
-                pass
     except Exception as e:
         pass
 
@@ -351,7 +380,7 @@ def add_to_booklist():
             else:
                 previous_button.config(state=tk.ACTIVE)
 
-            if sl_counter == backup_sl_counter[-1 - previous_count]:
+            if sl_counter == backup_sl_counter[0 - previous_count]:
                 next_button.config(state=tk.DISABLED)
             else:
                 next_button.config(state=tk.ACTIVE)
@@ -374,15 +403,7 @@ def add_to_booklist():
             booklist["Qty"].insert(sl_counter - 1, int(quantity.get()))
             booklist["Disc"].insert(sl_counter - 1, float(discount.get()))
             booklist["Price"].insert(sl_counter - 1, booklist_json[publisher.get()][book_name.get()]["price"])
-            sl_counter += 1
-            quantity_label.config(text="Quantity:")
-            book_name.delete(0, tk.END)
-            quantity.delete(0, tk.END)
-            discount.delete(0, tk.END)
-            publisher.delete(0, tk.END)
-            backup_sl_counter.append(sl_counter)
-            current_sl_label.config(text=f"Current Sl No.: {sl_counter}")
-            previous_count = 0
+            next_book()
         else:
             booklist["Sl"].append(sl_counter)
             booklist["Code"].append(booklist_json[publisher.get()][book_name.get()]["code"])
@@ -393,6 +414,8 @@ def add_to_booklist():
             booklist["Price"].append(booklist_json[publisher.get()][book_name.get()]["price"])
             sl_counter += 1
             backup_sl_counter.append(sl_counter)
+            if previous_count != 0:
+                previous_count -= 1
             quantity_label.config(text="Quantity:")
             book_name.delete(0, tk.END)
             quantity.delete(0, tk.END)
@@ -406,7 +429,7 @@ def add_to_booklist():
             else:
                 previous_button.config(state=tk.ACTIVE)
 
-            if sl_counter == backup_sl_counter[-1 - previous_count]:
+            if sl_counter == backup_sl_counter[0 - previous_count]:
                 next_button.config(state=tk.DISABLED)
             else:
                 next_button.config(state=tk.ACTIVE)
@@ -1010,6 +1033,13 @@ set_config_button.grid(row=2, column=1)
 save_state_button = tk.Button(customisatiion, text="Save State", command=save_state)
 save_state_button.grid(row=3, column=1)
 
+# Load Save State
+load_save_state_button = tk.Button(customisatiion, text="Load Save State", command=load_save_state)
+load_save_state_button.grid(row=4, column=1)
+
+# Clear Save State
+clear_save_state_button = tk.Button(customisatiion, text="Clear Save State", command=clear_save_state)
+clear_save_state_button.grid(row=5, column=1)
 
 # Add to Catalog
 catalog = tk.Frame(root, width=250, height=200, bd=5, relief="solid")
