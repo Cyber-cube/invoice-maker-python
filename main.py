@@ -2,6 +2,8 @@ import tkinter as tk
 import pandas as pd
 import os
 import json
+import math
+import tabula
 from itertools import islice
 from pdfinvoice import PDFInvoice
 from autocomplete import AutoComplete
@@ -17,7 +19,7 @@ with open("data/booklist.json") as f:
 with open("data/global-settings.json") as f:
     global_settings_json = json.load(f)
 
-pdf_types = ["PURCHASE", "PURCHASE RETURN", "INVOICE"]
+pdf_types = ["INVOICE", "PURCHASE RETURN"]
 pdf_types_var = tk.IntVar()
 pdf_type = ""
 
@@ -29,34 +31,35 @@ modes = ["Cash", "Cheque"]
 modes_var = tk.IntVar()
 mode = "Cash"
 
-org_name = "SAOUMYA BOOK POINT"
+org_name = global_settings_json["org_name"]
 
 from_details_var = {
-    "address_p1": "Transport Nagar, Patna - 800026",
-    "address_p2": "Near Mico Company, G.T. Road, Sasaram - 821115",
-    "mobile_no": "8294472040, 9631010694",
-    "pan": "AZDPM2348H",
-    "gstin": ""
+    "address_p1": global_settings_json["address_p1"],
+    "address_p2": global_settings_json["address_p2"],
+    "mobile_no": global_settings_json["mobile_no"],
+    "pan": global_settings_json["pan"],
+    "gstin": global_settings_json["gstin"]
 }
 
 to_details_var = {
-    "name": "INTELLICA PUBLISHERS (HUF) (D0357)",
-    "address_p1": "5/17 2ND FLOOR, KIRTI NAGAR INDUSTRIAL AREA NEAR HP PETROL PUMP",
-    "address_p2": "NEW DELHI 1100115",
-    "mobile_no": "9818220408"
+    "name": "",
+    "address_p1": "",
+    "address_p2": "",
+    "mobile_no": ""
 }
 memo_no = global_settings_json["memo_no"]
 payment_memo_no = global_settings_json["payment_memo_no"]
+credit_note_no = global_settings_json["credit_note_no"]
+
 delivery_info_var = {
     "memo": f"{memo_no:03}",
-    "date": "26-09-24",
+    "date": "",
     "gr/rr_no": "_",
     "delivery_by": "_",
     "bundles": "0"
 }
 
 sl_counter = 1
-# Maybe not needed
 backup_sl_counter = [1]
 previous_count = 0
 
@@ -89,14 +92,11 @@ def previous_book():
     global backup_sl_counter
     global sl_counter
     global previous_count
-    # Maybe not needed
     backup_sl_counter.append(sl_counter)
     previous_count += 1
     if sl_counter == backup_sl_counter[-previous_count]:
-        print("Oiia")
         next_button.config(state=tk.DISABLED)
     else:
-        print("Oiia meow", sl_counter == backup_sl_counter[-previous_count])
         next_button.config(state=tk.ACTIVE)
     sl_counter -= 1
     if sl_counter == 1:
@@ -110,7 +110,6 @@ def previous_book():
     quantity.delete(0, tk.END)
     discount.delete(0, tk.END)
     
-    print(previous_count, "meow")
 
     current_sl_label.config(text=f"Current Sl No: {sl_counter}")
     quantity_label.config(text="Quantity:")
@@ -118,22 +117,20 @@ def previous_book():
     book_name.insert(0, booklist["Title"][sl_counter - 1])
     quantity.insert(0, booklist["Qty"][sl_counter - 1])
     discount.insert(0, booklist["Disc"][sl_counter - 1])
-    print(backup_sl_counter[0 - previous_count], previous_count, backup_sl_counter)
 
 
 def next_book():
     global sl_counter
     global backup_sl_counter
     global previous_count
-    # Maybe not needed
-    backup_sl_counter.append(sl_counter)
     previous_count -= 1
+    if previous_count != 0:
+        backup_sl_counter.append(sl_counter)
     if sl_counter == backup_sl_counter[0 - previous_count]:
         next_button.config(state=tk.DISABLED)
     else:
         next_button.config(state=tk.ACTIVE)
     sl_counter += 1
-    print(previous_count, "from next_book")
     if sl_counter == 1:
         previous_button.config(state=tk.DISABLED)
     else:
@@ -242,6 +239,13 @@ def clear_save_state():
         json.dump(school_info, f, indent=2)
 
 def load_save_state():
+    global booklist
+    global sl_counter
+    global delivery_info_var
+    global memo_no
+    global global_settings_json
+    global school_names_raw
+    global school_names
     try:
         if to_name.get().split() != "":
             file_name = to_name.get().lower().split(" ")
@@ -255,6 +259,7 @@ def load_save_state():
                 delivery_by.insert(0, file["save_state"]["delivery_by"])
                 memo_no = file["save_state"]["memo_no"]
                 memo_label.config(text=f"Memo#: {memo_no:03}")
+                delivery_info_var["memo"] = str(memo_no)
 
                 booklist_temp: dict = file["save_state"]["booklist"]
                 for value in booklist_temp.values():
@@ -268,9 +273,57 @@ def load_save_state():
     except Exception as e:
         pass
 
+def load_pdf():
+    global booklist
+    global sl_counter
+    global delivery_info_var
+    global memo_no
+    global global_settings_json
+    global school_names_raw
+    global school_names
+
+    pdf_name = f"{to_name.get()}.pdf - {loading_memo_no.get()}.pdf"
+    memo_no = int(loading_memo_no.get())
+    delivery_info_var["memo"] = f"{memo_no:03}"
+    memo_label.config(text=f"Memo#: {memo_no:03}")
+
+    table = tabula.read_pdf(f"pdfs/{pdf_name}", pages="all", lattice=False, guess=False, columns=[56.31, 98.94, 325.26, 403.15, 424.73, 467.36, 510], area=[293.68, 27.89, 662.10, 580.52], stream=True)
+
+
+    index = 1
+    for page in table:
+        page.to_csv(f"test - {index}.csv", index=False)
+
+        if index != len(table):
+            df = pd.read_csv(f"test - {index}.csv", usecols=["Sl", "Title", "PUB", "Qty", "Disc"])
+        else:
+            df = pd.read_csv(f"test - {index}.csv", usecols=["Sl", "Title", "PUB", "Qty", "Disc"])
+        for i, row in df.iterrows():
+            try:
+                if isinstance(row["Title"], str):
+                    publisher.insert(0, str(row["PUB"]))
+                    book_name.insert(0, str(row["Title"]))
+                    quantity.insert(0, int(row["Qty"]))
+                    discount.insert(0, float(row["Disc"]))
+                    add_to_booklist()
+            except ValueError:
+                pass
+
+        os.remove(f"test - {index}.csv")
+        index += 1
+
+
+    # table[0].to_csv("test.csv", index=False)
+
 def change_pdf_type():
     global pdf_type
     pdf_type = pdf_types[pdf_types_var.get()]
+    if pdf_type == "PURCHASE RETURN":
+        delivery_info_var["memo"] = f"{int(credit_note_no):03}"
+        memo_label.config(text=f"Credit Note No#: {credit_note_no:03}")
+    else:
+        delivery_info_var["memo"] = f"{int(memo_no):03}"
+        memo_label.config(text=f"Memo#: {memo_no:03}")
 
 def change_payment_type():
     global payment_type
@@ -295,6 +348,10 @@ def change_payment_type():
 def change_modes():
     global mode
     mode = modes[modes_var.get()]
+
+    if mode == "Cheque":
+        cheque_no_label.grid(row=8, column=0)
+        cheque_no.grid(row=8, column=1)
 
 def publisher_focusout(event, which_pub):
     global catalog_book_autocomplete
@@ -368,7 +425,6 @@ def delivery_info_callback():
 def add_to_booklist():
     if publisher.get().strip() == "" or book_name.get().strip() == "" or discount.get().strip() == "" or quantity.get().strip() == "":
         product_input_status.config(text="Something is not filled")
-        print(booklist)
     else:
         global sl_counter
         global booklist_json
@@ -387,8 +443,7 @@ def add_to_booklist():
         except IndexError:
             pass
         
-        print(sl_counter, backup_sl_counter)
-        if sl_counter != backup_sl_counter[-1]:
+        if previous_count != 0:
             booklist["Sl"].pop(sl_counter - 1)
             booklist["Code"].pop(sl_counter - 1)
             booklist["Title"].pop(sl_counter - 1)
@@ -434,9 +489,13 @@ def add_to_booklist():
             else:
                 next_button.config(state=tk.ACTIVE)
 
+
 def set_configuration():
     global pdf_type
-    configuration["filename"] = f"{filename.get()}.pdf"
+    if pdf_type == "PURCHASE RETURN":
+        configuration["filename"] = f"{filename.get()} Purchase Return.pdf"
+    else:
+        configuration["filename"] = f"{filename.get()}.pdf"
     customisatiion_status_label.config(text="Data added successfully")
     pdf_type = pdf_types[pdf_types_var.get()]
 
@@ -663,6 +722,7 @@ def add_payment():
             "school_name": school_name.get(),
             "amount": payment_amount.get(),
             "vch_type": mode,
+            "cheque_no": str(cheque_no.get()) if mode == "Cheque" else None,
             "particulars": bank_name.get(),
             "transaction_date": transaction_date.get()
         }
@@ -693,7 +753,8 @@ def create_pdf():
     global memo_no
     global global_settings_json
     global school_names_raw
-    global school_names
+    global credit_note_no
+    global backup_sl_counter
     pdf = PDFInvoice(org_name, pdf_type)
     df = pd.DataFrame(booklist)
 
@@ -726,21 +787,62 @@ def create_pdf():
                     "debit": float(school_sales_info["info"]["debit"])
                 }
             }
-        school_sales_info["info"]["debit"] += df["Amount"].sum() - school_sales_info["info"]["credit"]
-        if school_sales_info["info"]["debit"] < 0:
-            school_sales_info["info"]["credit"] += abs(school_sales_info["info"]["debit"])
-            school_sales_info["info"]["debit"] = 00.0
-        school_sales_info["info"]["credit"] = 00.0
+        if pdf_type == "PURCHASE RETURN":
+            school_sales_info["info"]["debit"] -= round(df["Amount"].sum()) + school_sales_info["info"]["credit"]
+            school_sales_info["info"]["credit"] = 0.0
+            if school_sales_info["info"]["debit"] < 0:
+                school_sales_info["info"]["credit"] += abs(school_sales_info["info"]["debit"])
+                school_sales_info["info"]["debit"] = 00.0
 
-        school_sales_info["vch_info"][school_sales_info["info"]["current_session"]][memo_no] = {
-            "date": date.get(),
-            "particulars": "Sales",
-            "vch_type": pdf_type,
-            "vch_no": f"{memo_no:03}",
-            "amount": df["Amount"].sum()
-        }
-        with open(f"data/school-sales-info/{to_details_var["name"].replace(" ", "-").lower()}.json", "w") as f:
-            json.dump(school_sales_info, f, indent=2)
+            school_sales_info["vch_info"][school_sales_info["info"]["current_session"]][f"{str(credit_note_no)}-c"] = {
+                "date": date.get(),
+                "particulars": "Credit Note",
+                "vch_type": pdf_type,
+                "vch_no": f"{credit_note_no:03}",
+                "amount": round(df["Amount"].sum())
+            }
+
+            with open(f"data/school-sales-info/{to_details_var["name"].replace(" ", "-").lower()}.json", "w") as f:
+                json.dump(school_sales_info, f, indent=2)
+        elif pdf_type == "INVOICE":
+            if str(memo_no) not in school_sales_info["vch_info"][school_sales_info["info"]["current_session"]]:
+                school_sales_info["info"]["debit"] += round(df["Amount"].sum()) - school_sales_info["info"]["credit"]
+                school_sales_info["info"]["credit"] = 00.0
+                if school_sales_info["info"]["debit"] < 0:
+                    school_sales_info["info"]["credit"] += abs(school_sales_info["info"]["debit"])
+                    school_sales_info["info"]["debit"] = 00.0
+
+                school_sales_info["vch_info"][school_sales_info["info"]["current_session"]][str(memo_no)] = {
+                    "date": date.get(),
+                    "particulars": "Sales",
+                    "vch_type": pdf_type,
+                    "vch_no": f"{memo_no:03}",
+                    "amount": round(df["Amount"].sum())
+                }
+                with open(f"data/school-sales-info/{to_details_var["name"].replace(" ", "-").lower()}.json", "w") as f:
+                    json.dump(school_sales_info, f, indent=2)
+            else:
+                school_sales_info["info"]["debit"] -= school_sales_info["vch_info"][school_sales_info["info"]["current_session"]][str(memo_no)]["amount"]
+                if school_sales_info["info"]["debit"] < 0:
+                    school_sales_info["info"]["credit"] += abs(school_sales_info["info"]["debit"])
+                    school_sales_info["info"]["debit"] = 00.0
+
+                school_sales_info["info"]["debit"] += round(df["Amount"].sum()) - school_sales_info["info"]["credit"]
+                school_sales_info["info"]["credit"] = 00.0
+                if school_sales_info["info"]["debit"] < 0:
+                    school_sales_info["info"]["credit"] += abs(school_sales_info["info"]["debit"])
+                    school_sales_info["info"]["debit"] = 00.0
+
+                school_sales_info["vch_info"][school_sales_info["info"]["current_session"]][str(memo_no)] = {
+                    "date": date.get(),
+                    "particulars": "Sales",
+                    "vch_type": pdf_type,
+                    "vch_no": f"{memo_no:03}",
+                    "amount": round(df["Amount"].sum())
+                }
+                with open(f"data/school-sales-info/{to_details_var["name"].replace(" ", "-").lower()}.json", "w") as f:
+                    json.dump(school_sales_info, f, indent=2)
+            
     else:
         open(f"data/school-sales-info/{to_details_var["name"].replace(" ", "-").lower()}.json", "x").close()
 
@@ -753,7 +855,7 @@ def create_pdf():
             "from": {i: from_details_var[i] for i in from_details_var},
             "school_info": {i: to_details_var[i] for i in to_details_var},
             "credit": 00.0,
-            "debit": df["Amount"].sum(),
+            "debit": round(df["Amount"].sum()),
             "current_session": "1"
         }
         school_sales_info["info"]["from"]["name"] = org_name
@@ -771,30 +873,55 @@ def create_pdf():
             "particulars": "Sales",
             "vch_type": pdf_types[pdf_types_var.get()],
             "vch_no": f"{memo_no:03}",
-            "amount": df["Amount"].sum()
+            "amount": round(df["Amount"].sum())
         }
         with open(f"data/school-sales-info/{to_details_var["name"].replace(" ", "-").lower()}.json", "w") as f:
             json.dump(school_sales_info, f, indent=2)
 
-    chunk_size = 32
+    chunk_size = 25
+    totalCost = round(df["Amount"].sum())
+    totalQty = df["Qty"].sum()
+    totalRuns = math.ceil(len(df)/chunk_size)
+    currentRun = 0
     for i in range(0, len(df), chunk_size):
+        currentRun += 1
         pdf.add_page()
         pdf.from_details(from_details_var)
         pdf.to_details(to_details_var, delivery_info_var)
-        pdf.product_table(df.iloc[i:i + chunk_size])
+        if totalRuns == currentRun:
+            pdf.product_table(df.iloc[i:i + chunk_size], totalCost, totalQty, True)
+        else:
+            pdf.product_table(df.iloc[i:i + chunk_size], totalCost, totalQty, False)
         for i, rows in df.iloc[i:i + chunk_size].iterrows():
-            booklist_json[rows["Pub"]][rows["Title"]]["quantity"] = booklist_json[rows["Pub"]][rows["Title"]]["quantity"] - int(rows["Qty"])
+            if pdf_type == "PURCHASE RETURN":
+                booklist_json[rows["Pub"]][rows["Title"]]["quantity"] = booklist_json[rows["Pub"]][rows["Title"]]["quantity"] + int(rows["Qty"])
+            elif pdf_type == "INVOICE":
+                booklist_json[rows["Pub"]][rows["Title"]]["quantity"] = booklist_json[rows["Pub"]][rows["Title"]]["quantity"] - int(rows["Qty"])
         for j in booklist:
             booklist[j] = []
-    pdf.output(f"pdfs/{configuration["filename"]} - {memo_no}.pdf")
-    with open("data/booklist.json", "w") as f:
-        json.dump(booklist_json, f, indent=2)
-    sl_counter = 1
+    if pdf_type == "PURCHASE RETURN":
+        pdf.output(f"pdfs/{configuration["filename"]} - {credit_note_no}.pdf")
+        with open("data/booklist.json", "w") as f:
+            json.dump(booklist_json, f, indent=2)
+        sl_counter = 1
+        backup_sl_counter = [1]
 
-    if memo_no == global_settings_json["memo_no"]:
-        global_settings_json["memo_no"] += 1
-    memo_no = global_settings_json["memo_no"]
-    delivery_info_var["memo"] = f"{memo_no:03}"
+        if credit_note_no == global_settings_json["credit_note_no"]:
+            global_settings_json["credit_note_no"] += 1
+        credit_note_no = global_settings_json["credit_note_no"]
+        delivery_info_var["memo"] = f"{memo_no:03}"
+
+    elif pdf_type == "INVOICE":
+        pdf.output(f"pdfs/{configuration["filename"]} - {memo_no}.pdf")
+        with open("data/booklist.json", "w") as f:
+            json.dump(booklist_json, f, indent=2)
+        sl_counter = 1
+        backup_sl_counter = [1]
+
+        if memo_no == global_settings_json["memo_no"]:
+            global_settings_json["memo_no"] += 1
+        memo_no = global_settings_json["memo_no"]
+        delivery_info_var["memo"] = f"{memo_no:03}"
 
     current_sl_label.config(text=f"Current Sl No.: {sl_counter}")
     memo_label.config(text=f"Memo#: {memo_no:03}")
@@ -899,6 +1026,15 @@ to_status_label.grid(row=4, column=0)
 to_details_button = tk.Button(to_details, text="Set", command=to_details_callback)
 to_details_button.grid(row=4, column=1)
 
+# Memo Number to load
+loading_memo_no_label = tk.Label(to_details, text="Bill Memo No.")
+loading_memo_no_label.grid(row=5, column=0)
+loading_memo_no = tk.Entry(to_details)
+loading_memo_no.grid(row=5, column=1)
+
+# Load Bill
+load_bill_button = tk.Button(to_details, text="Load Bill", command=load_pdf)
+load_bill_button.grid(row=6, column=1)
 
 # Delivery Info
 delivery_info = tk.Frame(root, width=250, height=200, bd=5, relief="solid")
@@ -1125,19 +1261,23 @@ mode_1 = tk.Radiobutton(payment, text="Cash", variable=modes_var, value=0, comma
 mode_2 = tk.Radiobutton(payment, text="Cheque", variable=modes_var, value=1, command=change_modes)
 mode_2.grid(row=7, column=1)
 
+# Cheque No (If Cheque)
+cheque_no_label = tk.Label(payment, text="Cheque No.")
+cheque_no = tk.Entry(payment)
+
 # Date of payment
-payment_date_label = tk.Label(payment, text="Payment Date:")
-payment_date_label.grid(row=8, column=0)
+payment_date_label = tk.Label(payment, text="Payment Registration Date:")
+payment_date_label.grid(row=9, column=0)
 payment_date = tk.Entry(payment)
-payment_date.grid(row=8, column=1)
+payment_date.grid(row=9, column=1)
 
 # Memo No.
 payment_memo_no_label = tk.Label(payment, text=f"Memo#: {payment_memo_no:03}")
-payment_memo_no_label.grid(row=9, column=0)
+payment_memo_no_label.grid(row=10, column=0)
 
 # Add Payment button
 add_payment_button = tk.Button(payment, text="Add Payment", command=add_payment)
-add_payment_button.grid(row=9, column=1)
+add_payment_button.grid(row=10, column=1)
 
 # Ledger
 ledger = tk.Frame(root, height=200, width=250, bd=5, relief="solid")

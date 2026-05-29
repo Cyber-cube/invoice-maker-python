@@ -37,16 +37,26 @@ class PaymentSlip(FPDF):
         self.ln(self.font_size + 8)
 
         self.cell(None, None, "Amount in a word:")
-        self.cell(0, None, f"{num2words(details["amount"], lang="en_IN")}", "B")
+        self.cell(0, None, f"{num2words(details["amount"], lang="en_IN")} only".capitalize(), "B")
         self.ln(self.font_size + 8)
 
         self.cell(None, None, "By Cash/Cheque:")
-        self.cell(80, None, details["vch_type"], "B")
-        self.cell(None, None, "Bank")
-        self.cell(40, self.font_size if details["particulars"] == "" else None, details["particulars"], "B")
-        self.cell(None, None, "Date")
-        self.cell(0, None, details["transaction_date"], "B")
-        self.ln(self.font_size + 8)
+        if details["vch_type"] == "Cheque":
+            self.cell(40, None, details["vch_type"], "B")
+            self.cell(None, None, "Bank")
+            self.cell(40, self.font_size if details["particulars"] == "" else None, details["particulars"], "B")
+            self.cell(None, None, "Cheque No.")
+            self.cell(20, None, details["cheque_no"], "B")
+            self.cell(None, None, "Date")
+            self.cell(0, None, details["transaction_date"], "B")
+            self.ln(self.font_size + 8)
+        else:
+            self.cell(80, None, details["vch_type"], "B")
+            self.cell(None, None, "Bank")
+            self.cell(40, self.font_size if details["particulars"] == "" else None, details["particulars"], "B")
+            self.cell(None, None, "Date")
+            self.cell(0, None, details["transaction_date"], "B")
+            self.ln(self.font_size + 8)
 
         self.set_font("NotoFont", "", 11)
         self.cell(None, None, "Amount")
@@ -60,15 +70,16 @@ class PaymentSlip(FPDF):
 
 if __name__ == "__main__":
     details = {
-        "memo_no": 1,
-        "receipt_date": "23-01-2026",
+        "vch_no": 1,
+        "date": "23-01-2026",
         "school_name": "meow",
         "amount": 4677,
-        "mode": "Cheque",
-        "bank": "Test Bank",
+        "vch_type": "Cheque",
+        "particulars": "Test Bank",
+        "cheque_no": "123456",
         "transaction_date": "20-01-2026"
     }
     pdf = PaymentSlip("Saoumya Book Point")
     pdf.add_page()
     pdf.add_info(details)
-    pdf.output("pdfs/test.pdf")
+    pdf.output("pdfs/test-payment.pdf")

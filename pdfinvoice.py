@@ -11,7 +11,7 @@ class PDFInvoice(FPDF):
         self.save_y = 0
 
     def header(self) -> None:
-        self.add_font("NotoFont", "B", "fonts/Noto_Serif_Devanagari/NotoSerifDevanagari-VariableFont_wdth,wght.ttf")
+        # self.add_font("NotoFont", "B", "fonts/Noto_Serif_Devanagari/NotoSerifDevanagari-VariableFont_wdth,wght.ttf")
         self.add_font("NotoFont", "", "fonts/Noto_Serif_Devanagari/NotoSerifDevanagari-VariableFont_wdth,wght.ttf")
         self.set_font("Times", "B", 12)
         self.cell(200, 10, f"{self.pdf_type}", align="C" )
@@ -46,17 +46,23 @@ class PDFInvoice(FPDF):
         """, align="L", border=1)
 
         self.set_xy(self.save_x + 100, self.save_y)
-        self.cell(95, 3, f"Memo# {delivery_info["memo"]}       Date: {delivery_info["date"]}", border=1)
+        if self.pdf_type == "PURCHASE RETURN":
+            self.cell(95, 3, f"Credit Note No.# {delivery_info["memo"]}       Date: {delivery_info["date"]}", border=1)
+        else:
+            self.cell(95, 3, f"Memo# {delivery_info["memo"]}       Date: {delivery_info["date"]}", border=1)
         self.set_xy(self.save_x + 100, self.save_y + 3)
         self.cell(95, 5, f"GR/RR No.: {delivery_info["gr/rr_no"]}", border=1)
         self.set_xy(self.save_x + 100, self.save_y + 8)
-        self.cell(95, 5, f"Delivery By: {delivery_info["delivery_by"]}                                                  Bundles: {delivery_info["bundles"]}", border=1)
+        self.cell(95, 5, "", border=1)
+        self.set_xy(self.save_x + 100, self.save_y + 8)
+        self.cell(60, 5, f"Delivery By: {delivery_info["delivery_by"]}")
+        self.cell(35, 5, f"Bundles: {delivery_info["bundles"]}")
         self.set_xy(self.save_x + 100, self.save_y + 13)
         self.cell(95, 11, "", border=1)
         self.set_xy(self.save_x, self.save_y + 24)
         self.ln(5)
 
-    def product_table(self, df):
+    def product_table(self, df, totalAmount, totalQty, setTotal):
         self.set_xy(self.save_x, self.save_y + 24)
 
         self.set_font("NotoFont", "", 9) 
@@ -80,16 +86,17 @@ class PDFInvoice(FPDF):
             self.cell(15, 5, str(rows["Disc"]), border=1, align="R")
             self.cell(25, 5, str(rows["Amount"]), border=1, align="R")
             self.ln()
-        total_qty = df["Qty"].sum()
-        total_amount = df["Amount"].sum()
-        self.cell(10, 5, "", border=1)
-        self.cell(15, 5, "", border=1)
-        self.cell(80, 5, "", border=1)
-        self.cell(20, 5, "", border=1)
-        self.cell(15, 5, str(total_qty), border=1, align="R")
-        self.cell(15, 5, "", border=1, align="R")
-        self.cell(15, 5, "", border=1, align="R")
-        self.cell(25, 5, str(total_amount), border=1, align="R")
+        if setTotal:
+            total_qty = totalQty
+            total_amount = totalAmount
+            self.cell(10, 5, "", border=1)
+            self.cell(15, 5, "", border=1)
+            self.cell(80, 5, "", border=1)
+            self.cell(20, 5, "", border=1)
+            self.cell(15, 5, str(total_qty), border=1, align="R")
+            self.cell(15, 5, "", border=1, align="R")
+            self.cell(15, 5, "", border=1, align="R")
+            self.cell(25, 5, str(total_amount), border=1, align="R")
     
     def footer(self):
     
@@ -106,5 +113,33 @@ class PDFInvoice(FPDF):
 if __name__ == "__main__":
     pdf = PDFInvoice("Saoumya Book Point", "Invoice")
     pdf.add_page()
-    pdf.output("pdfs/mmm.pdf")
+    org_name = "SAOUMYA BOOK POINT"
+
+    from_details_var = {
+        "address_p1": "Transport Nagar, Patna - 800026",
+        "address_p2": "Near Mico Company, G.T. Road, Sasaram - 821115",
+        "mobile_no": "8294472040, 9631010694",
+        "pan": "AZDPM2348H",
+        "gstin": ""
+    }
+
+    to_details_var = {
+        "name": "INTELLICA PUBLISHERS (HUF) (D0357)",
+        "address_p1": "5/17 2ND FLOOR, KIRTI NAGAR INDUSTRIAL AREA NEAR HP PETROL PUMP",
+        "address_p2": "NEW DELHI 1100115",
+        "mobile_no": "9818220408"
+    }
+
+    delivery_info = {
+        "memo": "#036",
+        "date": "19/03/2026",
+        "gr/rr_no": "0202",
+        "delivery_by": "meow",
+        "bundles": "10"
+    }
+
+    pdf.header()
+    pdf.from_details(from_details_var)
+    pdf.to_details(to_details_var, delivery_info)
+    pdf.output("pdfs/mmmmm.pdf")
     

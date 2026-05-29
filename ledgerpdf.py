@@ -2,8 +2,6 @@ from collections.abc import ItemsView
 import json
 import pandas as pd
 from fpdf import FPDF
-from pandas.core.computation import align
-
 class LedgerPDF(FPDF):
     def __init__(self, from_var, school_info, date, to_date):
         super().__init__()
@@ -148,9 +146,9 @@ class LedgerPDF(FPDF):
                 self.cell(70, 5, str(rows["particulars"]), align="C")
                 self.cell(40, 5, str(rows["vch_type"]), align="C")
                 self.cell(20, 5, str(rows["vch_no"]), align="C")
-                self.cell(25, 5, str(rows["amount"]) if rows["vch_type"] == "INVOICE" or rows["vch_type"] == "PURCHASE" or rows["vch_type"] == "PURCHASE" else "", align="R")
-                self.cell(25, 5, str(rows["amount"]) if rows["vch_type"] == "Credit Note" or rows["vch_type"] == "Money Receipt" else "", align="R")
-                if rows["vch_type"] == "PURCHASE" or rows["vch_type"] == "PURCHASE RETURN" or rows["vch_type"] == "INVOICE":
+                self.cell(25, 5, str(rows["amount"]) if rows["vch_type"] == "INVOICE" or rows["vch_type"] == "PURCHASE" else "", align="R")
+                self.cell(25, 5, str(rows["amount"]) if rows["vch_type"] == "PURCHASE RETURN" or rows["vch_type"] == "Money Receipt" else "", align="R")
+                if rows["vch_type"] == "PURCHASE" or rows["vch_type"] == "INVOICE":
                     debit.append(float(rows["amount"]))
                 else:
                     credit.append(float(rows["amount"]))
@@ -171,17 +169,17 @@ class LedgerPDF(FPDF):
             self.cell(70, 5, "Closing Balance", align="C")
 
             self.set_xy(self.save_x + 170, self.save_y + 6)
-            self.cell(25, 5, str(abs(sum(debit) - sum(credit))), align="R")
+            self.cell(25, 5, str(round(abs(sum(debit) - sum(credit)), 2)), align="R")
             self.set_xy(self.save_x + 145, self.save_y + 6)
             self.save_y = self.get_y() + 6
             self.line(self.save_x + 145, self.save_y, self.save_x + 195, self.save_y)
             self.set_xy(self.save_x + 145, self.save_y + 1)
 
-            self.debit = 0.0 if sum(debit) - sum(credit) < 0 else abs(sum(debit) - sum(credit))
-            self.credit = 0.0 if sum(debit) - sum(credit) >= 0 else abs(sum(debit) - sum(credit))
+            self.debit = 0.0 if round(sum(debit) - sum(credit), 2) < 0 else round(abs(sum(debit) - sum(credit)), 2)
+            self.credit = 0.0 if round(sum(debit) - sum(credit), 2) >= 0 else round(abs(sum(debit) - sum(credit)), 2)
 
-            self.cell(25, 5, str(0 if sum(debit) - sum(credit) < 0 else abs(sum(debit) - sum(credit))), align="R")
-            self.cell(25, 5, str(0 if sum(debit) - sum(credit) >= 0 else abs(sum(debit) - sum(credit))), align="R")
+            self.cell(25, 5, str(0 if round(sum(debit) - sum(credit), 2) < 0 else round(abs(sum(debit) - sum(credit)), 2)), align="R")
+            self.cell(25, 5, str(0 if round(sum(debit) - sum(credit), 2) >= 0 else round(abs(sum(debit) - sum(credit)), 2)), align="R")
             self.set_xy(self.save_x + 145, self.save_y + 1)
             self.save_y = self.get_y() + 6
             self.line(self.save_x + 145, self.save_y, self.save_x + 195, self.save_y)
