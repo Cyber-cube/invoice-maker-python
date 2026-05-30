@@ -17,7 +17,7 @@ if os.path.exists("/data/global-settings.json"):
     
         if decision == "Yes":
             print("Resetting and changing configuration")
-            with open("data/global-settings.json") as f:
+            with open("./data/global-settings.json") as f:
                 settings = json.load(f)
 
             settings["org_name"] = org_name
