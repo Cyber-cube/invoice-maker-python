@@ -11,13 +11,13 @@ mobile_no = input("Enter the number associated with your company \n")
 pan = input("Enter your company's PAN \n")
 gstin = input("Enter your company's GST number \n")
 
-if os.path.exists("/data/global-settings.json"):
+if os.path.exists("./data/global-settings.json"):
     while True:
         decision = input("Do you want to reset the configuration file (including the memo no, credit note no, etc.) ?\n Enter Yes to reset and remake the configuration file. Enter No to update the configuration file without resetting it. \n")
     
         if decision == "Yes":
             print("Resetting and changing configuration")
-            with open("./data/global-settings.json") as f:
+            with open("data/global-settings.json") as f:
                 settings = json.load(f)
 
             settings["org_name"] = org_name
