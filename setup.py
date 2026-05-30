@@ -26,9 +26,9 @@ if os.path.exists("/data/global-settings.json"):
             settings["mobile_no"] = mobile_no
             settings["pan"] = pan
             settings["gstin"] = gstin
-            settings["memo_no"] = 0
-            settings["payment_memo_no"] = 0
-            settings["credit_note_no"] = 0
+            settings["memo_no"] = 1
+            settings["payment_memo_no"] = 1
+            settings["credit_note_no"] = 1
 
             with open("data/global-settings.json", "w") as f:
                 json.dump(settings, f, indent=2)
@@ -68,9 +68,9 @@ else:
     settings["mobile_no"] = mobile_no
     settings["pan"] = pan
     settings["gstin"] = gstin
-    settings["memo_no"] = 0
-    settings["payment_memo_no"] = 0
-    settings["credit_note_no"] = 0
+    settings["memo_no"] = 1
+    settings["payment_memo_no"] = 1
+    settings["credit_note_no"] = 1
 
     with open("data/global-settings.json", "w") as f:
         json.dump(settings, f, indent=2)
