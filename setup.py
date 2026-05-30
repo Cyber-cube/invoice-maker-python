@@ -72,9 +72,6 @@ else:
     settings["payment_memo_no"] = 0
     settings["credit_note_no"] = 0
 
-    open("data/global-settings.json", "x").close() 
-    with open("data/global-settings.json", "w") as f:
-        json.dump({}, f, indent=2)
     with open("data/global-settings.json", "w") as f:
         json.dump(settings, f, indent=2)
 
