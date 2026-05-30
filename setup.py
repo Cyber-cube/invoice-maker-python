@@ -72,10 +72,16 @@ else:
     settings["payment_memo_no"] = 0
     settings["credit_note_no"] = 0
 
-    with open("data/global-settings.json", "w") as f:
-        json.dump(settings, f, indent=2)
-    open("data/booklist.json", "x").close() 
+    open("data/global-settings.json", "x").close() 
     with open("data/global-settings.json", "w") as f:
         json.dump({}, f, indent=2)
+    with open("data/global-settings.json", "w") as f:
+        json.dump(settings, f, indent=2)
+
+    open("data/booklist.json", "x").close() 
+    with open("data/booklist.json", "w") as f:
+        json.dump({}, f, indent=2)
+
     os.makedirs("data/school-sales-info", exist_ok=True)
+    os.makedirs("pdfs/", exist_ok=True)
     print("Setup done! Now you can run the program")
